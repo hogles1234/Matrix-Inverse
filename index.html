@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matrix Inverse &amp; Linear System Solver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg: #ffffff; --paper: #f8f9fa; --ink: #202124; --soft: #5f6368; --line: #dadce0;
+    --accent: #1a73e8; --accent-bg: #e8f0fe; --on-accent: #ffffff; --bad: #d93025; --bad-bg: #fce8e6;
+    --g-blue: #4285f4; --g-red: #ea4335; --g-yellow: #fbbc04; --g-green: #34a853;
+    --cx: #1a73e8; --cx-bg: #e8f0fe; --cy: #d93025; --cy-bg: #fce8e6; --cz: #188038; --cz-bg: #e6f4ea;
+    --cw: #b06000; --cw-bg: #fef7e0; --cv: #8430ce; --cv-bg: #f3e8fd;
+    color-scheme: light;
+    --display: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Roboto Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #202124; --paper: #292a2d; --ink: #e8eaed; --soft: #9aa0a6; --line: #3c4043;
+    --accent: #8ab4f8; --accent-bg: #2a3b57; --on-accent: #202124; --bad: #f28b82; --bad-bg: #4a2c2a;
+    --g-blue: #8ab4f8; --g-red: #f28b82; --g-yellow: #fdd663; --g-green: #81c995;
+    --cx: #8ab4f8; --cx-bg: #2a3b57; --cy: #f28b82; --cy-bg: #4a2c2a; --cz: #81c995; --cz-bg: #213d2c;
+    --cw: #fdd663; --cw-bg: #4a3c14; --cv: #d7aefb; --cv-bg: #3a2452;
+    color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #202124; --paper: #292a2d; --ink: #e8eaed; --soft: #9aa0a6; --line: #3c4043;
+    --accent: #8ab4f8; --accent-bg: #2a3b57; --on-accent: #202124; --bad: #f28b82; --bad-bg: #4a2c2a;
+    --g-blue: #8ab4f8; --g-red: #f28b82; --g-yellow: #fdd663; --g-green: #81c995;
+    --cx: #8ab4f8; --cx-bg: #2a3b57; --cy: #f28b82; --cy-bg: #4a2c2a; --cz: #81c995; --cz-bg: #213d2c;
+    --cw: #fdd663; --cw-bg: #4a3c14; --cv: #d7aefb; --cv-bg: #3a2452;
+    color-scheme: dark;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); font: 16px/1.5 var(--display); background-color: var(--bg); }
+  body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 10;
+    background: linear-gradient(90deg, var(--g-blue) 0 25%, var(--g-red) 25% 50%, var(--g-yellow) 50% 75%, var(--g-green) 75% 100%); }
+  .wrap { position: relative; max-width: 820px; margin: 0 auto; padding: 56px 20px 72px; }
+
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  h1 { font-size: clamp(34px, 6.5vw, 56px); line-height: 1.02; text-wrap: balance; letter-spacing: -.03em; font-weight: 500; margin: 0 0 16px; }
+  .formula { font-family: var(--mono); font-weight: 500; color: var(--accent); background: var(--accent-bg); padding: 1px 8px; border-radius: 4px; }
+  .muted { color: var(--soft); font-size: 15px; margin: 0; max-width: 56ch; }
+
+  /* sections are separated by heavy rules, not boxed in cards */
+  .sec { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 34px; }
+  .sec h2 { font-size: 22px; font-weight: 500; letter-spacing: -.01em; margin: 0 0 16px; }
+
+  .row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  /* tabs for the choices */
+  .seg { display: flex; gap: 24px; flex-wrap: wrap; border-bottom: 2px solid var(--line); }
+  label.choice { padding: 8px 0; margin-bottom: -2px; border-bottom: 3px solid transparent; cursor: pointer;
+                 font-weight: 500; font-size: 16px; color: var(--soft); transition: color .15s, border-color .15s; }
+  label.choice:hover { color: var(--ink); }
+  label.choice:has(input:checked) { color: var(--ink); font-weight: 700; border-bottom-color: var(--accent); }
+  label.choice:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  label.choice input { position: absolute; opacity: 0; pointer-events: none; }
+
+  .stepper { margin-left: auto; display: flex; align-items: center; gap: 10px; color: var(--soft); font-size: 15px; }
+  .stepper b { font-family: var(--mono); font-size: 18px; color: var(--ink); min-width: 1ch; text-align: center; }
+  button { font: inherit; color: var(--ink); border: 2px solid var(--ink); border-radius: 6px; width: 32px; height: 32px;
+           padding: 0; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; transition: background .15s, color .15s; }
+  button:hover { background: var(--ink); color: var(--bg); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #theme { width: 40px; height: 40px; font-size: 19px; flex: none; margin-top: 6px; }
+  #solve { width: auto; height: auto; border: 0; border-radius: 999px; background: var(--accent); color: var(--on-accent);
+           padding: 12px 34px; font-size: 16px; font-weight: 500; }
+  #solve:hover { background: var(--accent); color: var(--on-accent); filter: brightness(1.1); }
+  #solve:active { transform: translateY(1px); }
+  .rand { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin-top: 18px; padding: 12px 16px;
+          background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
+  .rand .check { margin-top: 0; }
+  .rand .opt { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--soft); }
+  .rand input.rng { width: 84px; padding: 6px 8px; text-align: center; font: 500 15px var(--mono); color: var(--ink);
+                    background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+  .rand input.rng:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .rand input.rng.bad { border-color: var(--bad); background: var(--bad-bg); }
+  .rand label.opt { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--soft); }
+  .rand select { font: 500 15px var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+                 border-radius: 8px; padding: 5px 6px; cursor: pointer; }
+  .rand select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #randomize { width: auto; height: auto; border: 1px solid var(--line); border-radius: 999px; background: var(--bg);
+               color: var(--accent); padding: 9px 20px; font-size: 15px; font-weight: 500; }
+  #randomize:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  #randomize:active { transform: translateY(1px); }
+  .output-row { justify-content: space-between; align-items: flex-end; }
+
+  [hidden] { display: none !important; }
+  label.choice:has(input:disabled) { opacity: .4; cursor: not-allowed; }
+  label.choice:has(input:disabled):hover { color: var(--soft); }
+  .check:has(input:disabled), .check input:disabled { cursor: not-allowed; }
+  .check:has(input:disabled) { opacity: .65; }
+  .method-row { margin-top: 22px; }
+  .method-row .label { color: var(--soft); font-size: 15px; }
+  .method-row .check { margin-top: 0; }
+  .checks { display: flex; flex-wrap: wrap; gap: 0 26px; }
+  .check { display: inline-flex; align-items: center; gap: 10px; margin-top: 18px; cursor: pointer; font-size: 15px; color: var(--soft); }
+  .check input { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; margin: 0; border: 2px solid var(--ink);
+                 border-radius: 5px; display: grid; place-items: center; cursor: pointer; background: transparent; }
+  .check input:checked { background: var(--accent); border-color: var(--accent); }
+  .check input:checked::after { content: "✓"; color: var(--on-accent); font-size: 14px; font-weight: 700; line-height: 1; }
+  .check input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #inputs { margin-top: 14px; overflow-x: auto; padding-bottom: 4px; }
+  input.cell { width: 64px; padding: 8px 4px; text-align: center; border: 2px solid var(--line); border-radius: 6px;
+               font: 500 16px var(--mono); background: var(--paper); color: var(--ink); transition: border-color .15s; }
+  input.cell:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input.cell.c0 { border-color: color-mix(in srgb, var(--cx) 50%, var(--line)); }
+  input.cell.c1 { border-color: color-mix(in srgb, var(--cy) 50%, var(--line)); }
+  input.cell.c2 { border-color: color-mix(in srgb, var(--cz) 50%, var(--line)); }
+  input.cell.c0:focus { outline-color: var(--cx); }
+  input.cell.c1:focus { outline-color: var(--cy); }
+  input.cell.c2:focus { outline-color: var(--cz); }
+  input.cell.c3 { border-color: color-mix(in srgb, var(--cw) 50%, var(--line)); }
+  input.cell.c4 { border-color: color-mix(in srgb, var(--cv) 50%, var(--line)); }
+  input.cell.c3:focus { outline-color: var(--cw); }
+  input.cell.c4:focus { outline-color: var(--cv); }
+  input.cell.bad { border-color: var(--bad); background: var(--bad-bg); }
+  .equation { display: flex; gap: 8px; align-items: center; margin: 10px 0; color: var(--soft); font: 500 17px var(--mono); white-space: nowrap; }
+  select.op { font: 500 17px var(--mono); color: var(--ink); background-color: var(--paper); border: 2px solid var(--line);
+              border-radius: 6px; padding: 5px 2px; cursor: pointer; }
+  select.op option, .rand select option { background-color: var(--paper); color: var(--ink); }
+  select.op:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #warning { min-height: 22px; color: var(--bad); font-size: 14px; margin-top: 10px; }
+
+  /* the unknowns: small outlined badges */
+  .v { display: inline-grid; place-items: center; min-width: 30px; height: 30px; border-radius: 6px; font: 700 16px var(--mono); font-style: normal;
+       color: var(--accent); background: var(--accent-bg); }
+
+  .v0 { color: var(--cx); background: var(--cx-bg); }
+  .v1 { color: var(--cy); background: var(--cy-bg); }
+  .v2 { color: var(--cz); background: var(--cz-bg); }
+  .v3 { color: var(--cw); background: var(--cw-bg); }
+  .v4 { color: var(--cv); background: var(--cv-bg); }
+
+  /* real brackets: curved sides on a left/right-only border */
+  .matrix { display: inline-grid; gap: 8px 10px; padding: 8px 16px; border: 2px solid var(--ink); border-top: 0; border-bottom: 0;
+            border-radius: 22px; font-family: var(--mono); }
+  .matrix span { min-width: 44px; text-align: center; }
+  .matrix.aug { gap: 0; padding: 8px 12px; font-size: 14px; }
+  .aug span { padding: 4px 8px; min-width: 40px; }
+  .aug span.sep { min-width: 0; padding: 0; margin: 0 6px; border-left: 2px solid var(--soft); }
+  .aug span.rhs { color: var(--accent); font-weight: 500; }
+  .aug span.chg { background: var(--accent-bg); }
+  .legend { margin-bottom: 18px; }
+  .sec h2:not(:first-child) { margin-top: 30px; }
+  .matrix span.chg { background: var(--accent-bg); border-radius: 6px; }
+  .expr { font: 500 17px var(--mono); margin: 8px 0 0; overflow-x: auto; white-space: nowrap; }
+  /* stacked fractions: numerator over denominator */
+  .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle;
+          font-style: normal; font-size: .88em; line-height: 1.2; margin: 0 2px; }
+  .frac em { font-style: normal; padding: 0 4px; }
+  .frac em:first-child { border-bottom: 1.5px solid currentColor; }
+  .ops { font: 500 16px var(--mono); color: var(--accent); margin: 0 0 4px; overflow-wrap: anywhere; }
+  .line { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 10px 0; font-family: var(--mono); overflow-x: auto; }
+
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; position: relative; padding-left: 44px; margin: 0 0 18px; }
+  .step::before { content: counter(step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border: 2px solid var(--accent); color: var(--accent); border-radius: 50%;
+                  font: 500 13px/24px var(--mono); text-align: center; }
+  .step p { margin: 0 0 4px; }
+  .solution { border: 2px solid var(--accent); background: var(--paper); border-radius: 12px; padding: 14px 20px; margin-top: 10px; }
+  .solution b { font-size: 15px; }
+  .answer { font-size: 22px; font-weight: 500; }
+  .error { border-left: 6px solid var(--g-red); border-radius: 4px; background: var(--bad-bg); padding: 14px 18px; }
+  @media (max-width: 520px) { .stepper { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="top">
+    <h1>Matrix Inverse &amp; Linear System Solver</h1>
+    <button id="theme" aria-label="Switch between light and dark mode">☾</button>
+  </div>
+  <p class="muted">Solve <span class="formula">Ax = b</span>, or find <span class="formula">A⁻¹</span>, det(A) and Aᵀ. Enter your equations or matrix and every step is shown.</p>
+</header>
+
+<section class="sec">
+  <h2>Input</h2>
+  <div class="row">
+    <div class="seg">
+      <label class="choice"><input type="radio" name="mode" value="system" checked>Linear System</label>
+      <label class="choice"><input type="radio" name="mode" value="matrix">Matrix Equation</label>
+    </div>
+    <div class="stepper">Number of Variables
+      <button id="less" aria-label="Fewer unknowns">−</button><b id="count">3</b><button id="more" aria-label="More unknowns">+</button>
+    </div>
+  </div>
+  <div class="checks">
+    <label class="check"><input type="checkbox" id="labels" checked>Show variable labels</label>
+    <label class="check"><input type="checkbox" id="hasB" checked>Include "= b" (right-hand side)</label>
+    <label class="check"><input type="checkbox" id="fractions" checked>Show answers as fractions</label>
+  </div>
+  <div class="rand">
+    <button id="randomize" type="button">🎲 Randomize</button>
+    <span class="opt">Range
+      <input class="rng" id="rmin" type="number" step="any" min="-9999" max="9999" value="-9" aria-label="Smallest random number">
+      to
+      <input class="rng" id="rmax" type="number" step="any" min="-9999" max="9999" value="9" aria-label="Largest random number">
+    </span>
+    <label class="check"><input type="checkbox" id="decimals">Decimals</label>
+    <label class="check"><input type="checkbox" id="solvable" checked>Always solvable</label>
+  </div>
+  <div id="inputs"></div>
+  <div id="warning" role="alert"></div>
+</section>
+
+<section class="sec">
+  <h2>Output</h2>
+  <div class="row output-row">
+    <div class="seg">
+      <label class="choice"><input type="radio" name="output" value="solution" checked><span id="solveLabel">Solve Ax = b</span></label>
+      <label class="choice"><input type="radio" name="output" value="inverse">A⁻¹</label>
+      <label class="choice"><input type="radio" name="output" value="det">det(A)</label>
+      <label class="choice"><input type="radio" name="output" value="transpose">Aᵀ</label>
+    </div>
+    <button id="solve">Solve</button>
+  </div>
+  <div class="row method-row" id="methodRow">
+    <span class="label">Method</span>
+    <div class="seg">
+      <label class="choice"><input type="radio" name="method" value="rref" checked>Row reduction</label>
+      <label class="choice"><input type="radio" name="method" value="adjugate">Adjugate (cofactors)</label>
+    </div>
+    <label class="check" id="identityOpt"><input type="checkbox" id="withI" checked>Show identity matrix I</label>
+  </div>
+</section>
+
+<section class="sec" id="result"></section>
+
+</div>
+
+<script>
+// ---------- Data ----------
+const names = ["x", "y", "z", "w", "v"];
+const MAX_UNKNOWNS = 5;
+let labels = true;   // show the x, y, z badges? (the user can turn them off)
+let size = 3;
+let A = [[1, 1, 1], [2, -1, 0], [0, 1, 3]];   // example: answer is x=1, y=-4, z=1
+let b = [-2, 6, -1];
+let ops = [];   // the + or − in front of each term (system mode only)
+
+// ---------- Input rules ----------
+const ALLOWED_WHILE_TYPING = /^-?\d{0,4}(\.\d{0,2})?$/;
+const COMPLETE_NUMBER = /^-?\d+(\.\d+)?$/;
+
+function whyNotAllowed(text) {
+  if (/[^0-9.\-]/.test(text)) return "Only numbers are allowed (digits, one minus sign, one decimal point).";
+  if (/-.*-|.-/.test(text)) return "Use only one minus sign, and only at the start.";
+  if ((text.match(/\./g) || []).length > 1) return "Only one decimal point is allowed.";
+  const whole = text.replace("-", "").split(".")[0];
+  if (whole.length > 4) return "Maximum 4 digits before the decimal point.";
+  return "Maximum 2 decimal places.";
+}
+
+// ---------- Small helpers ----------
+const $ = (id) => document.getElementById(id);
+const chosen = (name) => document.querySelector(`input[name=${name}]:checked`).value;
+
+// ---------- Exact fractions (so 1/3 stays 1/3, never 0.3333) ----------
+const gcd = (a, b) => { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b) [a, b] = [b, a % b]; return a; };
+function fr(n, d = 1n) {
+  if (d < 0n) { n = -n; d = -d; }
+  const g = gcd(n, d) || 1n;
+  return { n: n / g, d: d / g };
+}
+const fAdd = (a, b) => fr(a.n * b.d + b.n * a.d, a.d * b.d);
+const fSub = (a, b) => fr(a.n * b.d - b.n * a.d, a.d * b.d);
+const fMul = (a, b) => fr(a.n * b.n, a.d * b.d);
+const fDiv = (a, b) => fr(a.n * b.d, a.d * b.n);
+const fNeg = (a) => fr(-a.n, a.d);
+const fAbs = (a) => fr(a.n < 0n ? -a.n : a.n, a.d);
+const fZero = (a) => a.n === 0n;
+const fOne = (a) => a.n === 1n && a.d === 1n;
+const fFromNumber = (x) => fr(BigInt(Math.round(x * 100)), 100n);   // inputs have at most 2 decimals
+const fToNumber = (a) => Number(a.n) / Number(a.d);
+const toFr = (x) => (typeof x === "number" ? fFromNumber(x) : x);
+
+let asFractions = true;   // show answers as fractions (can be switched to decimals)
+const MINUS = "−";
+
+// plain text version, used in sentences and row operations
+function show(x) {
+  const f = toFr(x);
+  if (asFractions) return (f.d === 1n ? `${f.n}` : `${f.n}/${f.d}`).replace("-", MINUS);
+  return String(Math.round(fToNumber(f) * 10000) / 10000 + 0).replace("-", MINUS);
+}
+
+// HTML version, used inside matrices: fractions are stacked like on paper
+function showHTML(x) {
+  const f = toFr(x);
+  if (!asFractions || f.d === 1n) return show(f);
+  const sign = f.n < 0n ? MINUS : "";
+  const top = f.n < 0n ? -f.n : f.n;
+  return `${sign}<em class="frac"><em>${top}</em><em>${f.d}</em></em>`;
+}
+
+function matrixHTML(rows, changed = []) {
+  const cells = rows.map((row, r) => row.map((n) => `<span${changed.includes(r) ? ' class="chg"' : ""}>${showHTML(n)}</span>`).join("")).join("");
+  return `<div class="matrix" style="grid-template-columns: repeat(${rows[0].length}, auto)">${cells}</div>`;
+}
+
+// a small badge for each unknown
+function varBadge(i) {
+  return `<i class="v v${i}">${names[i]}</i>`;
+}
+function namesHTML(n) {
+  return `<div class="matrix">${names.slice(0, n).map((_, i) => `<span>${varBadge(i)}</span>`).join("")}</div>`;
+}
+
+// the augmented matrix ([A | I | b], [A | I] or [A | b]) with divider lines; rows that just changed are shaded
+function augmentedHTML(rows, n, changed = [], { withI = true, hasB = true } = {}) {
+  let cells = "";
+  rows.forEach((row, r) => {
+    const shade = changed.includes(r) ? " chg" : "";
+    const put = (v, kind = "") => `<span class="${(kind + shade).trim()}">${showHTML(v)}</span>`;
+    let c = 0;
+    for (; c < n; c++) cells += put(row[c]);
+    if (withI) {
+      cells += `<span class="sep"></span>`;
+      for (; c < 2 * n; c++) cells += put(row[c]);
+    }
+    if (hasB) cells += `<span class="sep"></span>` + put(row[c], "rhs");
+  });
+  const cols = `repeat(${n}, auto)` + (withI ? ` 0px repeat(${n}, auto)` : "") + (hasB ? " 0px auto" : "");
+  return `<div class="matrix aug" style="grid-template-columns: ${cols}">${cells}</div>`;
+}
+
+function columnHTML(items) {
+  return `<div class="matrix">${items.map((t) => `<span>${t}</span>`).join("")}</div>`;
+}
+
+// ---------- The math: Gauss-Jordan elimination ----------
+// wrap negatives and fractions in brackets so "÷ (3/2)" reads clearly
+const paren = (v) => (v.n < 0n || v.d !== 1n ? `(${show(v)})` : show(v));
+// the number in front of a row in an operation like "R2 − 2·R1 → R2" (nothing when it is 1)
+const coef = (f) => {
+  const k = fAbs(f);
+  return fOne(k) ? "" : k.d === 1n ? `${show(k)}·` : `(${show(k)})·`;
+};
+
+// b = null means "matrix only" (no right-hand side); withI = false drops the identity block
+function solveSystem(A, b, { withI = true } = {}) {
+  const n = A.length;
+  const hasB = Array.isArray(b);
+  const bCol = withI ? 2 * n : n;
+  // the augmented table is [ A | I | b ], all exact fractions (I and b are optional)
+  const table = A.map((row, i) => [
+    ...row.map(fFromNumber),
+    ...(withI ? A.map((_, j) => fr(i === j ? 1n : 0n)) : []),
+    ...(hasB ? [fFromNumber(b[i])] : []),
+  ]);
+  const steps = [];
+  // text = plain-English line, ops = row operations like "R2 − 2·R1 → R2", changed = rows that were modified
+  const save = (text, ops = [], changed = []) =>
+    steps.push({ text, ops, changed, rows: table.map((r) => [...r]) });
+
+  const startText = withI && hasB ? "Start with the augmented matrix [A | I | b]: A on the left, the identity matrix I in the middle, b on the right."
+    : withI ? "Start with the augmented matrix [A | I]: A on the left, the identity matrix I on the right."
+    : "Start with the augmented matrix [A | b]: A on the left, b on the right.";
+  save(startText);
+
+  for (let col = 0; col < n; col++) {
+    let pivotRow = col;
+    while (pivotRow < n && fZero(table[pivotRow][col])) pivotRow++;
+    if (pivotRow === n) return { error: true };
+
+    if (pivotRow !== col) {
+      [table[pivotRow], table[col]] = [table[col], table[pivotRow]];
+      save(`Swap row ${col + 1} and row ${pivotRow + 1} so the pivot isn't zero.`,
+        [`R${col + 1} ↔ R${pivotRow + 1}`], [col, pivotRow]);
+    }
+
+    const pivot = table[col][col];
+    if (!fOne(pivot)) {
+      table[col] = table[col].map((v) => fDiv(v, pivot));
+      save(`Divide row ${col + 1} by ${show(pivot)} to make the pivot 1.`,
+        [`R${col + 1} ÷ ${paren(pivot)} → R${col + 1}`], [col]);
+    }
+
+    const ops = [], changedRows = [];
+    for (let row = 0; row < n; row++) {
+      const factor = table[row][col];
+      if (row !== col && !fZero(factor)) {
+        table[row] = table[row].map((v, k) => fSub(v, fMul(factor, table[col][k])));
+        ops.push(`R${row + 1} ${factor.n > 0n ? "−" : "+"} ${coef(factor)}R${col + 1} → R${row + 1}`);
+        changedRows.push(row);
+      }
+    }
+    if (ops.length) save(`Clear column ${col + 1} above and below the pivot.`, ops, changedRows);
+  }
+
+  save(withI && hasB ? "The left block is now the identity matrix I, so the middle block is A⁻¹ and the right column is the solution x."
+    : withI ? "The left block is now the identity matrix I, so the right block is A⁻¹."
+    : "The left block is now the identity matrix I, so the right column is the solution x.");
+
+  return {
+    steps,
+    layout: { withI, hasB },
+    solution: hasB ? table.map((r) => r[bCol]) : undefined,
+    inverse: withI ? table.map((r) => r.slice(n, 2 * n)) : undefined,
+  };
+}
+
+function rrefLegend({ withI, hasB }) {
+  const parts = ["A", ...(withI ? ["I"] : []), ...(hasB ? ["b"] : [])];
+  const turns = [...(withI ? ["I into A⁻¹"] : []), ...(hasB ? ["b into the solution x"] : [])].join(" and ");
+  return `Every matrix is [${parts.join(" | ")}]. The row operations turn A into I, which turns ${turns}. Shaded rows are the ones changed by that step.`;
+}
+
+function determinant(M) {
+  const n = M.length, t = M.map((r) => r.map(toFr));
+  let d = fr(1n);
+  for (let col = 0; col < n; col++) {
+    let p = col;
+    while (p < n && fZero(t[p][col])) p++;
+    if (p === n) return fr(0n);
+    if (p !== col) { [t[p], t[col]] = [t[col], t[p]]; d = fNeg(d); }
+    d = fMul(d, t[col][col]);
+    for (let r = col + 1; r < n; r++) {
+      const f = fDiv(t[r][col], t[col][col]);
+      t[r] = t[r].map((v, k) => fSub(v, fMul(f, t[col][k])));
+    }
+  }
+  return d;
+}
+
+// ---------- How the determinant is found ----------
+const sub = (n) => String(n).split("").map((d) => "₀₁₂₃₄₅₆₇₈₉"[d]).join("");
+const br = (x) => `(${show(x)})`;                          // always bracketed: (2), (−3), (1/2)
+const bn = (x) => (x.n < 0n ? `(${show(x)})` : show(x));   // bracketed only when negative
+
+// 2×2: a·d − b·c      3×3: cofactor expansion along row 1      4×4 and 5×5: row reduction to upper triangular
+function determinantSteps(M) {
+  const n = M.length;
+  const a = M.map((row) => row.map(toFr));
+  const clone = (m) => m.map((r) => [...r]);
+  const steps = [];
+
+  if (n === 2) {
+    const [[p, q], [r, s]] = a;
+    const ps = fMul(p, s), qr = fMul(q, r), value = fSub(ps, qr);
+    steps.push({ text: "For a 2×2 matrix, multiply the main diagonal (top-left × bottom-right), then subtract the product of the other diagonal (top-right × bottom-left).", rows: a });
+    steps.push({ text: "Put in the numbers:", lines: [
+      `det(A) = ${br(p)}${br(s)} − ${br(q)}${br(r)}`,
+      `= ${bn(ps)} − ${bn(qr)}`,
+      `= ${show(value)}`,
+    ] });
+    return { method: "2×2 formula", steps, value };
+  }
+
+  if (n === 3) {
+    steps.push({ text: "Expand along the first row (cofactor expansion): det(A) = a₁₁·M₁₁ − a₁₂·M₁₂ + a₁₃·M₁₃. Each M is the determinant of the 2×2 matrix left after crossing out that entry's row and column.", rows: a });
+    const terms = [];
+    for (let j = 0; j < 3; j++) {
+      const entry = a[0][j];
+      if (fZero(entry)) {
+        steps.push({ text: `a${sub(1)}${sub(j + 1)} = 0, so this term is 0 and M${sub(1)}${sub(j + 1)} isn't needed.` });
+        terms.push({ zero: true, prod: fr(0n) });
+        continue;
+      }
+      const minor = [1, 2].map((r) => a[r].filter((_, c) => c !== j));
+      const [[p, q], [r, s]] = minor;
+      const ps = fMul(p, s), qr = fMul(q, r), m = fSub(ps, qr);
+      steps.push({
+        text: `Cross out row 1 and column ${j + 1}. The 2×2 matrix left over gives M${sub(1)}${sub(j + 1)}:`,
+        rows: minor,
+        lines: [`M${sub(1)}${sub(j + 1)} = ${br(p)}${br(s)} − ${br(q)}${br(r)} = ${bn(ps)} − ${bn(qr)} = ${show(m)}`],
+      });
+      terms.push({ entry, m, prod: fMul(entry, m) });
+    }
+    const value = fAdd(fSub(terms[0].prod, terms[1].prod), terms[2].prod);
+    const sign = ["", " − ", " + "];
+    steps.push({ text: "Combine the three terms, using the signs + − + along the first row:", lines: [
+      "det(A) = " + terms.map((t, j) => sign[j] + (t.zero ? "0" : `${br(t.entry)}${br(t.m)}`)).join(""),
+      "= " + terms.map((t, j) => sign[j] + bn(t.prod)).join(""),
+      `= ${show(value)}`,
+    ] });
+    return { method: "cofactor expansion", steps, value };
+  }
+
+  // 4×4 and 5×5: make the matrix upper triangular, then multiply the diagonal
+  const t = clone(a);
+  let swaps = 0;
+  steps.push({ text: `For a ${n}×${n} matrix, use row operations to make A upper triangular (zeros below the diagonal). Swapping two rows flips the sign of det(A); subtracting a multiple of one row from another doesn't change it.`, rows: clone(t) });
+
+  for (let col = 0; col < n - 1; col++) {
+    let p = col;
+    while (p < n && fZero(t[p][col])) p++;
+    if (p === n) {
+      steps.push({ text: `Column ${col + 1} has only zeros from the diagonal down, so the determinant is 0.`, lines: ["det(A) = 0"] });
+      return { method: "row reduction", steps, value: fr(0n) };
+    }
+    if (p !== col) {
+      [t[p], t[col]] = [t[col], t[p]];
+      swaps++;
+      steps.push({ text: `Swap row ${col + 1} and row ${p + 1} so the pivot isn't zero. This flips the sign of the determinant.`,
+        ops: [`R${col + 1} ↔ R${p + 1}`], rows: clone(t), changed: [col, p] });
+    }
+    const ops = [], changed = [];
+    for (let r = col + 1; r < n; r++) {
+      if (fZero(t[r][col])) continue;
+      const f = fDiv(t[r][col], t[col][col]);
+      t[r] = t[r].map((v, k) => fSub(v, fMul(f, t[col][k])));
+      ops.push(`R${r + 1} ${f.n > 0n ? "−" : "+"} ${coef(f)}R${col + 1} → R${r + 1}`);
+      changed.push(r);
+    }
+    if (ops.length) steps.push({ text: `Clear column ${col + 1} below the pivot.`, ops, rows: clone(t), changed });
+  }
+
+  const diag = t.map((row, i) => row[i]);
+  const prod = diag.reduce(fMul, fr(1n));
+  const value = swaps % 2 ? fNeg(prod) : prod;
+  const swapWord = swaps === 1 ? "there was 1 row swap" : `there were ${swaps} row swaps`;
+  steps.push({
+    text: "The matrix is now upper triangular, so det(A) is the product of the diagonal entries" + (swaps ? `, with the sign flipped because ${swapWord}.` : "."),
+    rows: clone(t),
+    lines: swaps
+      ? [`det(A) = (−1)^${swaps} · ${diag.map(br).join(" · ")}`, `= (${swaps % 2 ? "−1" : "1"}) · ${bn(prod)}`, `= ${show(value)}`]
+      : [`det(A) = ${diag.map(br).join(" · ")}`, `= ${show(value)}`],
+  });
+  return { method: "row reduction", steps, value };
+}
+
+// shows any list of steps: row operations, a sentence, a matrix, extra blocks, and lines of working
+function stepsHTML(steps) {
+  return `<div class="steps">` + steps.map((st) => {
+    const ops = st.ops && st.ops.length ? `<p class="ops">${st.ops.join("  ;  ")}</p>` : "";
+    const mat = st.rows ? `<div class="line">${matrixHTML(st.rows, st.changed || [])}</div>` : "";
+    const blocks = (st.blocks || []).map((h) => `<div class="line">${h}</div>`).join("");
+    const lines = (st.lines || []).map((l) => `<div class="expr">${l}</div>`).join("");
+    return `<div class="step">${ops}<p class="muted">${st.text}</p>${mat}${blocks}${lines}</div>`;
+  }).join("") + `</div>`;
+}
+
+// ---------- Inverse (and solution) by the adjugate / cofactor method ----------
+// A⁻¹ = adj(A) ÷ det(A), where adj(A) is the transpose of the cofactor matrix
+function adjugateWork(Anum, bnum, includeX) {
+  const n = Anum.length;
+  const a = Anum.map((row) => row.map(fFromNumber));
+  const det = determinant(a);
+  if (fZero(det)) return { error: true };
+
+  const bf = Array.isArray(bnum) ? bnum.map(fFromNumber) : null;
+  const minorMatrix = (i, j) => a.filter((_, r) => r !== i).map((row) => row.filter((_, c) => c !== j));
+  const minors = a.map((row, i) => row.map((_, j) => determinant(minorMatrix(i, j))));
+  const cof = minors.map((row, i) => row.map((m, j) => ((i + j) % 2 ? fNeg(m) : m)));
+  const adj = a.map((_, i) => a.map((_, j) => cof[j][i]));      // transpose of the cofactor matrix
+  const inverse = adj.map((row) => row.map((v) => fDiv(v, det)));
+  const solution = bf ? inverse.map((row) => row.reduce((acc, v, j) => fAdd(acc, fMul(v, bf[j])), fr(0n))) : undefined;
+  const idx = (i, j) => `${sub(i + 1)}${sub(j + 1)}`;
+  const matrixOnly = (rows) => `<div class="matrix" style="grid-template-columns: repeat(${n}, auto)">${rows.flat().map((t) => `<span>${t}</span>`).join("")}</div>`;
+  const steps = [];
+
+  // 1. minors
+  const minorLines = [];
+  if (n <= 3) {
+    a.forEach((row, i) => row.forEach((_, j) => {
+      const m = minorMatrix(i, j);
+      if (n === 2) minorLines.push(`M${idx(i, j)} = ${show(minors[i][j])}`);
+      else {
+        const [[p, q], [r, s]] = m;
+        minorLines.push(`M${idx(i, j)} = ${br(p)}${br(s)} − ${br(q)}${br(r)} = ${bn(fMul(p, s))} − ${bn(fMul(q, r))} = ${show(minors[i][j])}`);
+      }
+    }));
+  }
+  steps.push({
+    text: n === 2
+      ? "Find the minor M of every entry: cross out its row and column. The one number left is the minor."
+      : n === 3
+        ? "Find the minor M of every entry: cross out its row and column, then take the determinant of the 2×2 matrix left (ad − bc)."
+        : `Find the minor M of every entry: cross out its row and column, then take the determinant of the ${n - 1}×${n - 1} matrix left.`,
+    rows: a,
+    blocks: [`M = ${matrixHTML(minors)}`],
+    lines: minorLines,
+  });
+
+  // 2. cofactors
+  const signs = a.map((row, i) => row.map((_, j) => ((i + j) % 2 ? "−" : "+")));
+  steps.push({
+    text: "Give each minor its checkerboard sign (+ − + − …) to get the cofactor: C = (−1)^(i+j) · M.",
+    blocks: [`signs = ${matrixOnly(signs)}`, `C = ${matrixHTML(cof)}`],
+  });
+
+  // 3. determinant from the first row
+  const row1 = a[0].map((v, j) => ({ v, c: cof[0][j] }));
+  steps.push({
+    text: `Expand along the first row to get det(A) = a${idx(0, 0)}C${idx(0, 0)} + a${idx(0, 1)}C${idx(0, 1)} + …. It is not 0, so A has an inverse.`,
+    lines: [
+      `det(A) = ${row1.map(({ v, c }) => `${br(v)}${br(c)}`).join(" + ")}`,
+      `= ${row1.map(({ v, c }) => bn(fMul(v, c))).join(" + ")}`,
+      `= ${show(det)}`,
+    ],
+  });
+
+  // 4. adjugate
+  steps.push({
+    text: "Transpose the cofactor matrix (rows become columns) to get the adjugate: adj(A) = Cᵀ.",
+    blocks: [`adj(A) = ${matrixHTML(adj)}`],
+  });
+
+  // 5. inverse
+  steps.push({
+    text: `Divide every entry of adj(A) by det(A) = ${show(det)}, that is A⁻¹ = (1 ÷ det(A)) · adj(A):`,
+    blocks: [`A⁻¹ = ${showHTML(fDiv(fr(1n), det))} ${matrixHTML(adj)} = ${matrixHTML(inverse)}`],
+  });
+
+  // 6. x = A⁻¹ b
+  if (includeX && bf) {
+    steps.push({
+      text: "Multiply A⁻¹ by b to get the solution x = A⁻¹b:",
+      lines: inverse.map((row, i) => `${names[i]} = ${row.map((v, j) => `${br(v)}${br(bf[j])}`).join(" + ")} = ${show(solution[i])}`),
+    });
+  }
+
+  return { steps, inverse, solution };
+}
+
+// ---------- Input area ----------
+function readInputs() {
+  document.querySelectorAll("input.cell").forEach((box) => {
+    const r = Number(box.dataset.row);
+    const c = Number(box.dataset.col);
+    if (c === size) b[r] = box.value;
+    else A[r][c] = box.value;
+  });
+}
+
+function resize() {
+  A = Array.from({ length: size }, (_, r) =>
+    Array.from({ length: size }, (_, c) => (A[r] && A[r][c] !== undefined ? A[r][c] : r === c ? 1 : 0)));
+  b = Array.from({ length: size }, (_, r) => (b[r] !== undefined ? b[r] : 0));
+  ops = Array.from({ length: size }, (_, r) =>
+    Array.from({ length: size }, (_, c) => (ops[r] && ops[r][c]) || "+"));
+}
+
+// is the "= b" part switched on? (off = a bare matrix: no b, no solution)
+const hasEquals = () => $("hasB").checked;
+
+function box(row, col) {
+  const value = col === size ? b[row] : A[row][col];
+  return `<input class="cell ${col === size ? "rhs" : labels && !(chosen("mode") === "matrix" && !hasEquals()) ? "c" + col : ""}" inputmode="decimal" maxlength="8" aria-label="Row ${row + 1}, column ${col + 1}"
+            data-row="${row}" data-col="${col}" data-last="${value}" value="${value}">`;
+}
+
+function opSelect(row, col) {
+  const cur = ops[row][col];
+  return `<select class="op" data-row="${row}" data-col="${col}" aria-label="Operation before ${names[col]}">
+    <option value="+"${cur === "+" ? " selected" : ""}>+</option>
+    <option value="−"${cur === "−" ? " selected" : ""}>−</option></select>`;
+}
+
+function drawInputs() {
+  resize();
+  $("count").textContent = size;
+  $("warning").textContent = "";
+  let html = "";
+
+  if (chosen("mode") === "system") {
+    for (let r = 0; r < size; r++) {
+      html += `<div class="equation">`;
+      for (let c = 0; c < size; c++) html += box(r, c) + (labels ? varBadge(c) : "") + (c < size - 1 ? opSelect(r, c + 1) : hasEquals() ? " =" : "");
+      html += (hasEquals() ? box(r, size) : "") + `</div>`;
+    }
+  } else if (!hasEquals()) {
+    // matrix equation without "= b": just the matrix
+    let aBoxes = "";
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) aBoxes += box(r, c);
+    html = `<div class="line"><div class="matrix" style="grid-template-columns: repeat(${size}, auto)">${aBoxes}</div></div>`;
+  } else {
+    const grid = (cols, content) =>
+      `<div class="matrix" style="grid-template-columns: repeat(${cols}, auto)">${content}</div>`;
+    let aBoxes = "", bBoxes = "";
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) aBoxes += box(r, c);
+      bBoxes += box(r, size);
+    }
+    html = `<div class="line">${grid(size, aBoxes)} ${labels ? namesHTML(size) : ""} = ${grid(1, bBoxes)}</div>`;
+  }
+  $("inputs").innerHTML = html;
+}
+
+$("inputs").addEventListener("change", (event) => {
+  const sel = event.target;
+  if (sel.classList.contains("op")) ops[Number(sel.dataset.row)][Number(sel.dataset.col)] = sel.value;
+});
+
+let warningTimer;
+$("inputs").addEventListener("input", (event) => {
+  const box = event.target;
+  if (!box.classList.contains("cell")) return;
+
+  if (ALLOWED_WHILE_TYPING.test(box.value)) {
+    box.dataset.last = box.value;
+    box.classList.remove("bad");
+    $("warning").textContent = "";
+    return;
+  }
+
+  $("warning").textContent = whyNotAllowed(box.value);
+  box.value = box.dataset.last;
+  box.classList.add("bad");
+  clearTimeout(warningTimer);
+  warningTimer = setTimeout(() => {
+    box.classList.remove("bad");
+    $("warning").textContent = "";
+  }, 2500);
+});
+
+// ---------- Randomize ----------
+function randomize() {
+  const minBox = $("rmin"), maxBox = $("rmax");
+  const decimals = $("decimals").checked;
+  const solvable = $("solvable").checked;
+  const system = chosen("mode") === "system";
+
+  let lo = Number(minBox.value), hi = Number(maxBox.value);
+  const fail = (msg, ...boxes) => {
+    $("warning").textContent = msg;
+    [minBox, maxBox].forEach((x) => x.classList.toggle("bad", boxes.includes(x)));
+  };
+  [minBox, maxBox].forEach((x) => x.classList.remove("bad"));
+
+  if (minBox.value.trim() === "" || maxBox.value.trim() === "" || !isFinite(lo) || !isFinite(hi))
+    return fail("Enter both a smallest and a largest number for the range.", minBox, maxBox);
+  if (Math.abs(lo) > 9999 || Math.abs(hi) > 9999)
+    return fail("Range numbers can be at most 9999 (the boxes hold 4 digits).", minBox, maxBox);
+  if (lo > hi) {   // min and max entered the wrong way round: swap them
+    [lo, hi] = [hi, lo];
+    [minBox.value, maxBox.value] = [maxBox.value, minBox.value];
+  }
+  if (!decimals) {
+    lo = Math.ceil(lo); hi = Math.floor(hi);
+    if (lo > hi) return fail("No whole number fits in that range. Widen it or turn on Decimals.", minBox, maxBox);
+  }
+
+  const pick = () => {
+    const v = decimals
+      ? Math.min(hi, Math.max(lo, Math.round((lo + Math.random() * (hi - lo)) * 10) / 10))
+      : lo + Math.floor(Math.random() * (hi - lo + 1));
+    return v + 0;   // turns -0 into 0
+  };
+
+  let M, tries = 0;
+  do {
+    M = Array.from({ length: size }, () => Array.from({ length: size }, pick));
+    tries++;
+  } while (solvable && Math.abs(fToNumber(determinant(M))) < 0.5 && tries < 500);
+
+  const stuck = solvable && Math.abs(fToNumber(determinant(M))) < 0.5;
+  b = Array.from({ length: size }, pick);
+  ops = Array.from({ length: size }, () => Array(size).fill("+"));
+
+  if (system) {
+    // in a system the sign goes in the + / − box, so the number itself stays positive
+    A = M.map((row, r) => row.map((v, c) => {
+      if (c > 0 && v < 0) { ops[r][c] = "−"; return -v; }
+      return v;
+    }));
+  } else {
+    A = M;
+  }
+
+  drawInputs();
+  showResult();
+  if (stuck) $("warning").textContent = "That range is too narrow to guarantee a solvable system. Widen it for better results.";
+}
+
+// ---------- Output area ----------
+function showResult() {
+  readInputs();
+  const out = $("result");
+
+  let allGood = true;
+  document.querySelectorAll("input.cell").forEach((box) => {
+    const good = COMPLETE_NUMBER.test(box.value);
+    box.classList.toggle("bad", !good);
+    if (!good) allGood = false;
+  });
+  if (!allGood) {
+    out.innerHTML = `<div class="error">Fill every box with a complete number, like 3, -2 or 0.5. A lone "-" or "1." is not valid.</div>`;
+    return;
+  }
+
+  // in system mode, a "−" in front of a term flips the sign of its number
+  const mode = chosen("mode");
+  const plain = !hasEquals();   // no "= b": there is no b, so no solution
+  const flip = mode === "system";
+  const numbersA = A.map((row, r) => row.map((v, c) => Number(v) * (flip && c > 0 && ops[r][c] === "−" ? -1 : 1)));
+  const numbersB = plain ? null : b.map(Number);
+
+  if (chosen("output") === "det") {
+    const d = determinant(numbersA);
+    const how = determinantSteps(numbersA);
+    out.innerHTML = `<h2>Steps (${how.method})</h2>${stepsHTML(how.steps)}` +
+      `<h2>Determinant</h2><div class="solution"><div class="line answer">det(A) = ${showHTML(d)}</div></div>` +
+      (fZero(d) ? `<p class="muted">The determinant is 0, so A has no inverse.</p>` : `<p class="muted">The determinant is not 0, so A has an inverse.</p>`);
+    return;
+  }
+  if (chosen("output") === "transpose") {
+    const T = numbersA[0].map((_, c) => numbersA.map((row) => row[c]));
+    out.innerHTML = `<h2>Transpose</h2><div class="solution"><div class="line answer">Aᵀ = ${matrixHTML(T)}</div></div>` +
+      `<p class="muted">Rows of A become columns of Aᵀ.</p>`;
+    return;
+  }
+
+  const wantInverse = chosen("output") === "inverse";
+  const adjugate = chosen("method") === "adjugate";
+  const withI = wantInverse || plain || $("withI").checked;   // finding A⁻¹ by row reduction needs I
+  const result = adjugate ? adjugateWork(numbersA, numbersB, !wantInverse) : solveSystem(numbersA, numbersB, { withI });
+
+  if (result.error) {
+    out.innerHTML = `<div class="error">${plain ? "This matrix has no inverse (det = 0)." : "No unique solution: this system has no inverse (det = 0)."}</div>`;
+    return;
+  }
+
+  let html = "";
+
+  if (wantInverse) {
+    html += `<h2>Inverse</h2><div class="line answer">A⁻¹ = ${matrixHTML(result.inverse)}</div>`;
+  }
+
+  if (adjugate) {
+    html += `<h2>Steps (adjugate method)</h2>
+      <p class="muted legend">A⁻¹ = adj(A) ÷ det(A). The adjugate adj(A) is the transpose of the cofactor matrix, and each cofactor is a minor with a + or − sign.</p>
+      ${stepsHTML(result.steps)}`;
+  } else {
+    html += `<h2>Steps (Gauss-Jordan)</h2>
+      <p class="muted legend">${rrefLegend(result.layout)}</p>
+      <div class="steps">`;
+    for (const step of result.steps) {
+      const ops = step.ops.length ? `<p class="ops">${step.ops.join("  ;  ")}</p>` : "";
+      html += `<div class="step">${ops}<p class="muted">${step.text}</p><div class="line">${augmentedHTML(step.rows, size, step.changed, result.layout)}</div></div>`;
+    }
+    html += `</div>`;
+  }
+
+  if (!plain) {
+    if (wantInverse) html += `<p class="muted">Then x = A⁻¹b:</p>`;
+    html += `<div class="solution"><b>Solution</b>
+      <div class="line answer">${labels ? namesHTML(size) + " =" : ""} ${columnHTML(result.solution.map(showHTML))}</div></div>`;
+  }
+
+  out.innerHTML = html;
+}
+
+// ---------- Wire up the page ----------
+let userWithI = true;   // remembers the "Show identity matrix I" choice while the box is locked on
+
+// show only the controls that make sense for the current input mode, output and method
+function syncControls() {
+  const plain = !hasEquals();
+  const solutionRadio = document.querySelector("input[name=output][value=solution]");
+  solutionRadio.disabled = plain;   // a solution needs a b
+  $("solveLabel").textContent = plain ? "Solve Ax = b (needs = b)" : "Solve Ax = b";
+  if (plain && solutionRadio.checked) document.querySelector("input[name=output][value=inverse]").checked = true;
+
+  const kind = chosen("output");
+  $("methodRow").hidden = !(kind === "solution" || kind === "inverse");
+  $("identityOpt").hidden = chosen("method") !== "rref";
+  const needI = kind === "inverse" || plain;
+  $("withI").disabled = needI;
+  $("withI").checked = needI ? true : userWithI;
+}
+
+document.querySelectorAll("input[name=mode]").forEach((r) =>
+  r.addEventListener("change", () => { readInputs(); syncControls(); drawInputs(); }));
+$("hasB").onchange = () => { readInputs(); syncControls(); drawInputs(); };
+document.querySelectorAll("input[name=output], input[name=method]").forEach((r) =>
+  r.addEventListener("change", syncControls));
+$("withI").onchange = (e) => { userWithI = e.target.checked; };
+$("more").onclick = () => { readInputs(); if (size < MAX_UNKNOWNS) size++; drawInputs(); };
+$("less").onclick = () => { readInputs(); if (size > 2) size--; drawInputs(); };
+$("solve").onclick = showResult;
+$("randomize").onclick = randomize;
+$("fractions").onchange = (e) => { asFractions = e.target.checked; showResult(); };
+$("labels").onchange = (e) => { readInputs(); labels = e.target.checked; drawInputs(); showResult(); };
+
+// ---------- Light / dark mode ----------
+const root = document.documentElement;
+function setTheme(mode) {
+  root.dataset.theme = mode;
+  $("theme").textContent = mode === "dark" ? "☀" : "☾";   // shows the mode you will switch to
+}
+setTheme(matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+$("theme").onclick = () => setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+
+syncControls();
+drawInputs();
+showResult();
+</script>
+</body>
+</html>
