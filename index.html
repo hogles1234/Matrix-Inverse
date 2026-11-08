@@ -71,6 +71,14 @@
   button:hover { background: var(--ink); color: var(--bg); }
   button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   #theme { width: 40px; height: 40px; font-size: 19px; flex: none; margin-top: 6px; }
+  /* gag: the A⁻¹ button turns the whole page "inverse" (colours inverted + upside down). The same button puts it back.
+     The button sits outside .wrap, so it is never turned upside down and is always easy to find. */
+  #gag { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20; width: auto; height: auto;
+         padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--soft);
+         font: 500 14px var(--mono); }
+  #gag:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  html.inversed { filter: invert(1) hue-rotate(180deg); }
+  html.inversed .wrap { transform: rotate(180deg); }
   #solve { width: auto; height: auto; border: 0; border-radius: 999px; background: var(--accent); color: var(--on-accent);
            padding: 12px 34px; font-size: 16px; font-weight: 500; }
   #solve:hover { background: var(--accent); color: var(--on-accent); filter: brightness(1.1); }
@@ -237,11 +245,13 @@
 
 </div>
 
+<button id="gag" type="button" title="Inverse the whole page">A⁻¹ the page</button>
+
 <script>
 /*
   so paano to nagana guys, incase na tanongin tayo for the code
 
-  The page takes the numbers you type, solves the system with exact fractions, and writes the working
+  so this code guy takes the numbers you type, solves the system with exact fractions, and writes the working
   out as HTML so every step is visible. The code is in this order:
 
     1. Data          A, b, ops and size hold everything you typed. All output is built from these.
@@ -278,7 +288,6 @@
 */
 
 //  Data
-// Everything on the page is drawn from these variables.
 const MAX_UNKNOWNS = 6;   // the biggest system the page allows (the + button stops here)
 const subscript = (n) => String(n).split("").map((d) => "₀₁₂₃₄₅₆₇₈₉"[d]).join("");
 const names = ["x", "y", "z", "w", "v", "u"];   // names of the unknowns, in order
@@ -403,6 +412,7 @@ function columnHTML(items) {
 }
 
 // ---------- The math: Gauss-Jordan elimination ----------
+//YUNG MAGIC
 // The next two helpers only help to WRITE the row operations nicely, e.g. "R2 − (3/2)·R1 → R2".
 // wrap negatives and fractions in brackets so "÷ (3/2)" reads clearly
 const paren = (v) => (v.n < 0n || v.d !== 1n ? `(${show(v)})` : show(v));
@@ -412,7 +422,7 @@ const coef = (f) => {
   return fOne(k) ? "" : k.d === 1n ? `${show(k)}·` : `(${show(k)})·`;
 };
 
-// solveSystem is the heart of the page. It builds the table [ A | I | b ] and does Gauss-Jordan elimination:
+// solveSystem, It builds the table [ A | I | b ] and does Gauss-Jordan elimination:
 // for each column, (1) find a row with a non-zero number there (the pivot), (2) swap it into place,
 // (3) divide that row so the pivot becomes 1, (4) subtract multiples of it from every other row so the rest
 // of the column becomes 0. After the last column the left block is the identity matrix, the I block has
@@ -451,11 +461,17 @@ function solveSystem(A, b, { withI = true, showI = withI } = {}) {
     while (pivotRow < n && fZero(table[pivotRow][col])) pivotRow++;
     // nothing found: this column can never get its 1, so A cannot become I, so there is no inverse
     if (pivotRow === n) return { error: true };
+    // like a person would: if some row at or below this one already has a 1 in this column, use that row as the
+    // pivot. Then no division is needed, and no fractions get created.
+    for (let r = col; r < n; r++) if (fOne(table[r][col])) { pivotRow = r; break; }
 
     // (2) swap the pivot row into the diagonal position if it is not already there
     if (pivotRow !== col) {
+      const bringsInOne = fOne(table[pivotRow][col]);   // is the row we swap in already a 1?
       [table[pivotRow], table[col]] = [table[col], table[pivotRow]];
-      save(`Swap row ${col + 1} and row ${pivotRow + 1} so the pivot isn't zero.`,
+      save(bringsInOne
+        ? `Swap row ${col + 1} and row ${pivotRow + 1}: row ${pivotRow + 1} already has a 1 in column ${col + 1}, so no division is needed.`
+        : `Swap row ${col + 1} and row ${pivotRow + 1} so the pivot isn't zero.`,
         [`R${col + 1} ↔ R${pivotRow + 1}`], [col, pivotRow]);
     }
 
@@ -509,7 +525,6 @@ function rrefLegend({ withI, hasB, hiddenI }) {
   return `${shown} ${what}${hidden} Shaded rows are the ones changed by that step.`;
 }
 
-// The determinant is only used by Randomize, to check a random matrix is invertible (determinant not 0).
 // Method: row reduce to a triangle, multiply the diagonal, and flip the sign once for every row swap.
 function determinant(M) {
   const n = M.length, t = M.map((r) => r.map(toFr));
@@ -597,10 +612,16 @@ function singularWork(Anum, bnum, { showI = false } = {}) {
     let p = row;
     while (p < n && fZero(t[p][col])) p++;
     if (p === n) continue;   // nothing left to use as a pivot in this column: it will be a free variable
+    // same shortcut as in solveSystem: prefer a row that already has a 1 here (no division needed)
+    for (let r = row; r < n; r++) if (fOne(t[r][col])) { p = r; break; }
 
     if (p !== row) {
+      const bringsInOne = fOne(t[p][col]);
       [t[p], t[row]] = [t[row], t[p]];
-      save(`Swap row ${row + 1} and row ${p + 1} so the pivot isn't zero.`, [`R${row + 1} ↔ R${p + 1}`], [row, p]);
+      save(bringsInOne
+        ? `Swap row ${row + 1} and row ${p + 1}: row ${p + 1} already has a 1 in column ${col + 1}, so no division is needed.`
+        : `Swap row ${row + 1} and row ${p + 1} so the pivot isn't zero.`,
+        [`R${row + 1} ↔ R${p + 1}`], [row, p]);
     }
     const pivot = t[row][col];
     if (!fOne(pivot)) {
@@ -1006,7 +1027,6 @@ $("randomize").onclick = randomize;
 $("fractions").onchange = (e) => { asFractions = e.target.checked; showResult(); };
 $("labels").onchange = (e) => { readInputs(); labels = e.target.checked; drawInputs(); showResult(); };
 
-// ---------- Remember your numbers and choices (so a new version of this file doesn't make you retype them) ----------
 // The browser's localStorage keeps small pieces of text for this page even after you close it.
 // saveState() stores your numbers and choices as one piece of JSON text; loadState() reads them back
 // when the page opens. Both are wrapped in try/catch because some browsers block storage for local files.
@@ -1066,6 +1086,20 @@ function setTheme(mode) {
 }
 setTheme(matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 $("theme").onclick = () => setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+
+// ---------- Gag: "inverse" the whole page, and put it back ----------
+// The A⁻¹ button adds the class "inversed" to the page and the CSS does the rest (colours inverted, content turned
+// upside down). Pressing the button again, or the Esc key, takes the class off. Nothing is saved, so reloading the
+// page also puts everything back.
+const gagBtn = $("gag");
+function setInversed(on) {
+  root.classList.toggle("inversed", on);
+  gagBtn.textContent = on ? "Put it back" : "A⁻¹ the page";
+  // upside down means the top of the page is now at the bottom, so jump there (and back to the top when restoring)
+  window.scrollTo(0, on ? document.documentElement.scrollHeight : 0);
+}
+gagBtn.onclick = () => setInversed(!root.classList.contains("inversed"));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && root.classList.contains("inversed")) setInversed(false); });
 
 // startUp runs once when the page opens: load saved numbers, tidy the signs, draw the boxes, show a first result
 function startUp() {
