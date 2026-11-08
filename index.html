@@ -15,7 +15,7 @@
     --accent: #1a73e8; --accent-bg: #e8f0fe; --on-accent: #ffffff; --bad: #d93025; --bad-bg: #fce8e6;
     --g-blue: #4285f4; --g-red: #ea4335; --g-yellow: #fbbc04; --g-green: #34a853;
     --cx: #1a73e8; --cx-bg: #e8f0fe; --cy: #d93025; --cy-bg: #fce8e6; --cz: #188038; --cz-bg: #e6f4ea;
-    --cw: #b06000; --cw-bg: #fef7e0; --cv: #8430ce; --cv-bg: #f3e8fd;
+    --cw: #b06000; --cw-bg: #fef7e0; --cv: #8430ce; --cv-bg: #f3e8fd; --cu: #007b83; --cu-bg: #e4f7fb;
     color-scheme: light;
     --display: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
     --mono: "Roboto Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -26,7 +26,7 @@
     --accent: #8ab4f8; --accent-bg: #2a3b57; --on-accent: #202124; --bad: #f28b82; --bad-bg: #4a2c2a;
     --g-blue: #8ab4f8; --g-red: #f28b82; --g-yellow: #fdd663; --g-green: #81c995;
     --cx: #8ab4f8; --cx-bg: #2a3b57; --cy: #f28b82; --cy-bg: #4a2c2a; --cz: #81c995; --cz-bg: #213d2c;
-    --cw: #fdd663; --cw-bg: #4a3c14; --cv: #d7aefb; --cv-bg: #3a2452;
+    --cw: #fdd663; --cw-bg: #4a3c14; --cv: #d7aefb; --cv-bg: #3a2452; --cu: #78d9ec; --cu-bg: #1c3d44;
     color-scheme: dark;
     }
   }
@@ -35,7 +35,7 @@
     --accent: #8ab4f8; --accent-bg: #2a3b57; --on-accent: #202124; --bad: #f28b82; --bad-bg: #4a2c2a;
     --g-blue: #8ab4f8; --g-red: #f28b82; --g-yellow: #fdd663; --g-green: #81c995;
     --cx: #8ab4f8; --cx-bg: #2a3b57; --cy: #f28b82; --cy-bg: #4a2c2a; --cz: #81c995; --cz-bg: #213d2c;
-    --cw: #fdd663; --cw-bg: #4a3c14; --cv: #d7aefb; --cv-bg: #3a2452;
+    --cw: #fdd663; --cw-bg: #4a3c14; --cv: #d7aefb; --cv-bg: #3a2452; --cu: #78d9ec; --cu-bg: #1c3d44;
     color-scheme: dark;
   }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); }
@@ -98,9 +98,8 @@
   label.choice:has(input:disabled):hover { color: var(--soft); }
   .check:has(input:disabled), .check input:disabled { cursor: not-allowed; }
   .check:has(input:disabled) { opacity: .65; }
-  .method-row { margin-top: 22px; }
-  .method-row .label { color: var(--soft); font-size: 15px; }
-  .method-row .check { margin-top: 0; }
+  .options-row { margin-top: 22px; }
+  .options-row .check { margin-top: 0; }
   .checks { display: flex; flex-wrap: wrap; gap: 0 26px; }
   .check { display: inline-flex; align-items: center; gap: 10px; margin-top: 18px; cursor: pointer; font-size: 15px; color: var(--soft); }
   .check input { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; margin: 0; border: 2px solid var(--ink);
@@ -122,6 +121,8 @@
   input.cell.c4 { border-color: color-mix(in srgb, var(--cv) 50%, var(--line)); }
   input.cell.c3:focus { outline-color: var(--cw); }
   input.cell.c4:focus { outline-color: var(--cv); }
+  input.cell.c5 { border-color: color-mix(in srgb, var(--cu) 50%, var(--line)); }
+  input.cell.c5:focus { outline-color: var(--cu); }
   input.cell.bad { border-color: var(--bad); background: var(--bad-bg); }
   .equation { display: flex; gap: 8px; align-items: center; margin: 10px 0; color: var(--soft); font: 500 17px var(--mono); white-space: nowrap; }
   select.op { font: 500 17px var(--mono); color: var(--ink); background-color: var(--paper); border: 2px solid var(--line);
@@ -139,6 +140,7 @@
   .v2 { color: var(--cz); background: var(--cz-bg); }
   .v3 { color: var(--cw); background: var(--cw-bg); }
   .v4 { color: var(--cv); background: var(--cv-bg); }
+  .v5 { color: var(--cu); background: var(--cu-bg); }
 
   /* real brackets: curved sides on a left/right-only border */
   .matrix { display: inline-grid; gap: 8px 10px; padding: 8px 16px; border: 2px solid var(--ink); border-top: 0; border-bottom: 0;
@@ -152,6 +154,8 @@
   .legend { margin-bottom: 18px; }
   .sec h2:not(:first-child) { margin-top: 30px; }
   .matrix span.chg { background: var(--accent-bg); border-radius: 6px; }
+  .derive { border-left: 3px solid var(--accent); padding: 2px 0 6px 16px; }
+  .derive p { margin: 0 0 4px; }
   .expr { font: 500 17px var(--mono); margin: 8px 0 0; overflow-x: auto; white-space: nowrap; }
   /* stacked fractions: numerator over denominator */
   .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle;
@@ -181,7 +185,7 @@
     <h1>Matrix Inverse &amp; Linear System Solver</h1>
     <button id="theme" aria-label="Switch between light and dark mode">☾</button>
   </div>
-  <p class="muted">Solve <span class="formula">Ax = b</span>, or find <span class="formula">A⁻¹</span>, det(A) and Aᵀ. Enter your equations or matrix and every step is shown.</p>
+  <p class="muted">Solve <span class="formula">Ax = b</span>, or find <span class="formula">A⁻¹</span> and Aᵀ. Enter your equations or matrix and every step is shown.</p>
 </header>
 
 <section class="sec">
@@ -220,18 +224,12 @@
     <div class="seg">
       <label class="choice"><input type="radio" name="output" value="solution" checked><span id="solveLabel">Solve Ax = b</span></label>
       <label class="choice"><input type="radio" name="output" value="inverse">A⁻¹</label>
-      <label class="choice"><input type="radio" name="output" value="det">det(A)</label>
       <label class="choice"><input type="radio" name="output" value="transpose">Aᵀ</label>
     </div>
     <button id="solve">Solve</button>
   </div>
-  <div class="row method-row" id="methodRow">
-    <span class="label">Method</span>
-    <div class="seg">
-      <label class="choice"><input type="radio" name="method" value="rref" checked>Row reduction</label>
-      <label class="choice"><input type="radio" name="method" value="adjugate">Adjugate (cofactors)</label>
-    </div>
-    <label class="check" id="identityOpt"><input type="checkbox" id="withI" checked>Show identity matrix I</label>
+  <div class="row options-row" id="optionsRow">
+    <label class="check"><input type="checkbox" id="withI" checked>Show identity matrix I</label>
   </div>
 </section>
 
@@ -240,19 +238,68 @@
 </div>
 
 <script>
-// ---------- Data ----------
-const names = ["x", "y", "z", "w", "v"];
-const MAX_UNKNOWNS = 5;
+/*
+  so paano to nagana guys, incase na tanongin tayo for the code
+
+  The page takes the numbers you type, solves the system with exact fractions, and writes the working
+  out as HTML so every step is visible. The code is in this order:
+
+    1. Data          A, b, ops and size hold everything you typed. All output is built from these.
+    2. Input rules   what the boxes accept (max 4 digits, 2 decimals, one minus sign).
+    3. Fractions     numbers are stored as numerator/denominator so 1/3 never turns into 0.3333.
+    4. Drawing       small functions that turn matrices into HTML (grids, stacked fractions, badges).
+    5. The math      solveSystem() = Gauss-Jordan elimination. singularWork() = what to do when
+                     there is no inverse.
+    6. Input area    drawInputs() builds the boxes, readInputs() copies them back into A, b and ops.
+    7. Randomize     fills the boxes with random numbers (and can make sure the matrix is invertible).
+    8. Output        showResult() decides what to show and puts the steps into the page.
+    9. Wiring        buttons and tick boxes, switching modes, remembering your numbers, dark mode.
+
+  Yung flow
+    you type -> readInputs() puts the boxes into A, b, ops
+             -> you press Solve -> showResult() runs
+             -> showResult() turns A and b into plain numbers, then calls solveSystem()
+             -> solveSystem() returns the steps, the inverse and the solution
+             -> showResult() writes them into the page (as HTML text)
+
+  Paano hinahanap yung Inverse? (Gauss-Jordan)
+    Put A and the identity matrix I side by side:  [ A | I ]
+    Then apply row operations to WHOLE rows (both halves): swap two rows, divide a row by a number,
+    subtract a multiple of one row from another. Keep going until the left half becomes I.
+    Every operation that turned A into I was also done to the right half, so the right half has
+    turned from I into A⁻¹. If b is also attached ( [ A | I | b ] ), it turns into A⁻¹b = x,
+    which is the solution. That is why x = A⁻¹b with A⁻¹ on the left of b.
+
+  Paano niya malalaman if walang inverse?
+    While reducing, we need a non-zero number (a "pivot") in each column. If a column has none left,
+    A can never become I, so A has no inverse. singularWork() then keeps reducing anyway and reads
+    the answer from the result: a row like 0 0 0 | 5 means no solution, a row like 0 0 0 | 0 means
+    infinitely many solutions.
+*/
+
+//  Data
+// Everything on the page is drawn from these variables.
+const MAX_UNKNOWNS = 6;   // the biggest system the page allows (the + button stops here)
+const subscript = (n) => String(n).split("").map((d) => "₀₁₂₃₄₅₆₇₈₉"[d]).join("");
+const names = ["x", "y", "z", "w", "v", "u"];   // names of the unknowns, in order
 let labels = true;   // show the x, y, z badges? (the user can turn them off)
-let size = 3;
-let A = [[1, 1, 1], [2, -1, 0], [0, 1, 3]];   // example: answer is x=1, y=-4, z=1
-let b = [-2, 6, -1];
-let ops = [];   // the + or − in front of each term (system mode only)
+let size = 3;   // how many unknowns (and equations)
+// A = the coefficient matrix. b = the right-hand side. Both are kept as what was typed (text), and only turned into real numbers when you press Solve.
+let A = [[2, 2, -1], [1, -3, 1], [3, 1, -2]];   // starting example (machine challenge 7): 2x+2y−z=−8, x−3y+z=14, 3x+y−2z=−8
+let b = [-8, 14, -8];
+// In Linear System mode the + or − in front of each term lives here, one entry per number in A.
+// The real value of a term is  (number in the box) × (+1 or −1 from its sign box).
+let ops = [];
 
 // ---------- Input rules ----------
+// Two checks on what is typed in a box:
+//  - ALLOWED_WHILE_TYPING: still a valid start of a number (optional minus, up to 4 digits, up to 2 decimals).
+//    Anything else is rejected the moment it is typed, and the box goes back to its last good text.
+//  - COMPLETE_NUMBER: a finished number. Used when you press Solve (so a lone "-" or "1." is refused).
 const ALLOWED_WHILE_TYPING = /^-?\d{0,4}(\.\d{0,2})?$/;
 const COMPLETE_NUMBER = /^-?\d+(\.\d+)?$/;
 
+// works out which rule a rejected text broke, so the warning message can say why
 function whyNotAllowed(text) {
   if (/[^0-9.\-]/.test(text)) return "Only numbers are allowed (digits, one minus sign, one decimal point).";
   if (/-.*-|.-/.test(text)) return "Use only one minus sign, and only at the start.";
@@ -263,39 +310,52 @@ function whyNotAllowed(text) {
 }
 
 // ---------- Small helpers ----------
+// $("x") is just a shorter way to write document.getElementById("x")
 const $ = (id) => document.getElementById(id);
+// the value of whichever radio button is ticked in a group (e.g. chosen("mode") gives "system" or "matrix")
 const chosen = (name) => document.querySelector(`input[name=${name}]:checked`).value;
 
 // ---------- Exact fractions (so 1/3 stays 1/3, never 0.3333) ----------
+// Normal JavaScript numbers are decimals and drift (0.1 + 0.2 = 0.30000000000000004). That would make
+// the row reduction slightly wrong. So every value in the maths is a fraction {n: top, d: bottom} made of
+// BigInt (whole numbers of any size, written like 5n). A fraction is always kept in lowest terms with a
+// positive bottom, so equal values look identical.
 const gcd = (a, b) => { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b) [a, b] = [b, a % b]; return a; };
+// fr(6n, 4n) gives {n: 3n, d: 2n}: makes the bottom positive and cancels the common factor
 function fr(n, d = 1n) {
   if (d < 0n) { n = -n; d = -d; }
   const g = gcd(n, d) || 1n;
   return { n: n / g, d: d / g };
 }
+// the four operations on fractions (the usual school rules: a/b + c/d = (ad + cb) / bd, and so on)
 const fAdd = (a, b) => fr(a.n * b.d + b.n * a.d, a.d * b.d);
 const fSub = (a, b) => fr(a.n * b.d - b.n * a.d, a.d * b.d);
 const fMul = (a, b) => fr(a.n * b.n, a.d * b.d);
 const fDiv = (a, b) => fr(a.n * b.d, a.d * b.n);
 const fNeg = (a) => fr(-a.n, a.d);
 const fAbs = (a) => fr(a.n < 0n ? -a.n : a.n, a.d);
+// quick tests used by the row reduction: "is this 0?" and "is this 1?"
 const fZero = (a) => a.n === 0n;
 const fOne = (a) => a.n === 1n && a.d === 1n;
+// the boxes allow at most 2 decimals, so multiplying by 100 gives a whole number: 2.5 becomes 250/100 = 5/2
 const fFromNumber = (x) => fr(BigInt(Math.round(x * 100)), 100n);   // inputs have at most 2 decimals
 const fToNumber = (a) => Number(a.n) / Number(a.d);
+// accepts either a plain number or a fraction and always returns a fraction
 const toFr = (x) => (typeof x === "number" ? fFromNumber(x) : x);
 
 let asFractions = true;   // show answers as fractions (can be switched to decimals)
 const MINUS = "−";
 
-// plain text version, used in sentences and row operations
+// plain text version of a number, used in sentences and row operations
+// (fractions show as 7/3, or as a decimal rounded to 4 places when the decimals option is on)
 function show(x) {
   const f = toFr(x);
   if (asFractions) return (f.d === 1n ? `${f.n}` : `${f.n}/${f.d}`).replace("-", MINUS);
   return String(Math.round(fToNumber(f) * 10000) / 10000 + 0).replace("-", MINUS);
 }
 
-// HTML version, used inside matrices: fractions are stacked like on paper
+// HTML version, used inside matrices: fractions are drawn stacked like on paper
+// (the top and bottom are two small <em> tags, styled in the CSS under .frac)
 function showHTML(x) {
   const f = toFr(x);
   if (!asFractions || f.d === 1n) return show(f);
@@ -304,6 +364,7 @@ function showHTML(x) {
   return `${sign}<em class="frac"><em>${top}</em><em>${f.d}</em></em>`;
 }
 
+// turns a list of rows into a grid. "changed" is the list of row numbers to shade (the rows a step just changed)
 function matrixHTML(rows, changed = []) {
   const cells = rows.map((row, r) => row.map((n) => `<span${changed.includes(r) ? ' class="chg"' : ""}>${showHTML(n)}</span>`).join("")).join("");
   return `<div class="matrix" style="grid-template-columns: repeat(${rows[0].length}, auto)">${cells}</div>`;
@@ -317,7 +378,9 @@ function namesHTML(n) {
   return `<div class="matrix">${names.slice(0, n).map((_, i) => `<span>${varBadge(i)}</span>`).join("")}</div>`;
 }
 
-// the augmented matrix ([A | I | b], [A | I] or [A | b]) with divider lines; rows that just changed are shaded
+// the augmented matrix ([A | I | b], [A | I] or [A | b]) with divider lines; rows that just changed are shaded.
+// Each row of "rows" is laid out as: n numbers of A, then (if withI) n numbers of I, then (if hasB) one number of b.
+// The thin "sep" cells are the vertical divider lines between the blocks.
 function augmentedHTML(rows, n, changed = [], { withI = true, hasB = true } = {}) {
   let cells = "";
   rows.forEach((row, r) => {
@@ -340,6 +403,7 @@ function columnHTML(items) {
 }
 
 // ---------- The math: Gauss-Jordan elimination ----------
+// The next two helpers only help to WRITE the row operations nicely, e.g. "R2 − (3/2)·R1 → R2".
 // wrap negatives and fractions in brackets so "÷ (3/2)" reads clearly
 const paren = (v) => (v.n < 0n || v.d !== 1n ? `(${show(v)})` : show(v));
 // the number in front of a row in an operation like "R2 − 2·R1 → R2" (nothing when it is 1)
@@ -348,38 +412,54 @@ const coef = (f) => {
   return fOne(k) ? "" : k.d === 1n ? `${show(k)}·` : `(${show(k)})·`;
 };
 
-// b = null means "matrix only" (no right-hand side); withI = false drops the identity block
-function solveSystem(A, b, { withI = true } = {}) {
+// solveSystem is the heart of the page. It builds the table [ A | I | b ] and does Gauss-Jordan elimination:
+// for each column, (1) find a row with a non-zero number there (the pivot), (2) swap it into place,
+// (3) divide that row so the pivot becomes 1, (4) subtract multiples of it from every other row so the rest
+// of the column becomes 0. After the last column the left block is the identity matrix, the I block has
+// become A⁻¹ and the b column has become the solution x.
+// It also records every step (the text, the row operations and a copy of the table) so the page can show them.
+// If a column has no pivot, A has no inverse and it returns {error: true}.
+// b = null means "no right-hand side"; withI = false drops the identity block from the maths;
+// showI = false keeps I in the maths (so A⁻¹ is still found) but hides it from the steps
+function solveSystem(A, b, { withI = true, showI = withI } = {}) {
+  showI = showI && withI;
   const n = A.length;
   const hasB = Array.isArray(b);
   const bCol = withI ? 2 * n : n;
   // the augmented table is [ A | I | b ], all exact fractions (I and b are optional)
+  // (the I block is a grid of 0s with 1s on the diagonal: 1 when the row number equals the column number)
   const table = A.map((row, i) => [
     ...row.map(fFromNumber),
     ...(withI ? A.map((_, j) => fr(i === j ? 1n : 0n)) : []),
     ...(hasB ? [fFromNumber(b[i])] : []),
   ]);
   const steps = [];
-  // text = plain-English line, ops = row operations like "R2 − 2·R1 → R2", changed = rows that were modified
+  // save() stores one step: text = plain-English line, ops = row operations like "R2 − 2·R1 → R2", changed = rows that were modified
   const save = (text, ops = [], changed = []) =>
-    steps.push({ text, ops, changed, rows: table.map((r) => [...r]) });
+    steps.push({ text, ops, changed, rows: table.map((r) => (withI && !showI ? [...r.slice(0, n), ...r.slice(2 * n)] : [...r])) });
 
-  const startText = withI && hasB ? "Start with the augmented matrix [A | I | b]: A on the left, the identity matrix I in the middle, b on the right."
-    : withI ? "Start with the augmented matrix [A | I]: A on the left, the identity matrix I on the right."
-    : "Start with the augmented matrix [A | b]: A on the left, b on the right.";
+  const startText = showI && hasB ? "Start with the augmented matrix [A | I | b]: A on the left, the identity matrix I in the middle, b on the right."
+    : showI ? "Start with the augmented matrix [A | I]: A on the left, the identity matrix I on the right."
+    : hasB ? "Start with the augmented matrix [A | b]: A on the left, b on the right."
+    : "Start with the matrix A.";
   save(startText);
 
+  // one pass of this loop handles one column
   for (let col = 0; col < n; col++) {
+    // (1) look downwards for the first row with a non-zero number in this column
     let pivotRow = col;
     while (pivotRow < n && fZero(table[pivotRow][col])) pivotRow++;
+    // nothing found: this column can never get its 1, so A cannot become I, so there is no inverse
     if (pivotRow === n) return { error: true };
 
+    // (2) swap the pivot row into the diagonal position if it is not already there
     if (pivotRow !== col) {
       [table[pivotRow], table[col]] = [table[col], table[pivotRow]];
       save(`Swap row ${col + 1} and row ${pivotRow + 1} so the pivot isn't zero.`,
         [`R${col + 1} ↔ R${pivotRow + 1}`], [col, pivotRow]);
     }
 
+    // (3) divide the whole row (all blocks) by the pivot so the pivot becomes 1
     const pivot = table[col][col];
     if (!fOne(pivot)) {
       table[col] = table[col].map((v) => fDiv(v, pivot));
@@ -387,6 +467,8 @@ function solveSystem(A, b, { withI = true } = {}) {
         [`R${col + 1} ÷ ${paren(pivot)} → R${col + 1}`], [col]);
     }
 
+    // (4) make every other number in this column 0: take "factor" times the pivot row away from that row.
+    // "factor" is the number currently sitting in this column of that row.
     const ops = [], changedRows = [];
     for (let row = 0; row < n; row++) {
       const factor = table[row][col];
@@ -399,24 +481,36 @@ function solveSystem(A, b, { withI = true } = {}) {
     if (ops.length) save(`Clear column ${col + 1} above and below the pivot.`, ops, changedRows);
   }
 
-  save(withI && hasB ? "The left block is now the identity matrix I, so the middle block is A⁻¹ and the right column is the solution x."
-    : withI ? "The left block is now the identity matrix I, so the right block is A⁻¹."
-    : "The left block is now the identity matrix I, so the right column is the solution x.");
+  // the loop is finished: the left block is I. Now read the answers off the table.
+  const hiddenNote = withI && !showI ? " Doing the same row operations to I (hidden here) gives A⁻¹." : "";
+  save(showI && hasB ? "The left block is now the identity matrix I, so the middle block is A⁻¹ and the right column is the solution x."
+    : showI ? "The left block is now the identity matrix I, so the right block is A⁻¹."
+    : hasB ? "The left block is now the identity matrix I, so the right column is the solution x." + hiddenNote
+    : "A has been reduced to the identity matrix I." + hiddenNote);
 
+  // the I block (columns n to 2n-1) is A⁻¹, and the b column is the solution x
   return {
     steps,
-    layout: { withI, hasB },
+    layout: { withI: showI, hasB, hiddenI: withI && !showI },   // what the steps display
     solution: hasB ? table.map((r) => r[bCol]) : undefined,
     inverse: withI ? table.map((r) => r.slice(n, 2 * n)) : undefined,
   };
 }
 
-function rrefLegend({ withI, hasB }) {
+// the short explanation printed above the steps; the wording depends on which blocks are on show
+function rrefLegend({ withI, hasB, hiddenI }) {
   const parts = ["A", ...(withI ? ["I"] : []), ...(hasB ? ["b"] : [])];
-  const turns = [...(withI ? ["I into A⁻¹"] : []), ...(hasB ? ["b into the solution x"] : [])].join(" and ");
-  return `Every matrix is [${parts.join(" | ")}]. The row operations turn A into I, which turns ${turns}. Shaded rows are the ones changed by that step.`;
+  const turns = [...(withI ? ["I into A⁻¹"] : []), ...(hasB ? ["b into the solution x"] : [])];
+  const shown = parts.length > 1 ? `Every matrix is [${parts.join(" | ")}].` : "Every matrix is A.";
+  const what = turns.length
+    ? `The row operations turn A into I, which turns ${turns.join(" and ")}.`
+    : "The row operations turn A into the identity matrix I.";
+  const hidden = hiddenI ? ' The identity block is still updated behind the scenes to get A⁻¹; tick "Show identity matrix I" to see it.' : "";
+  return `${shown} ${what}${hidden} Shaded rows are the ones changed by that step.`;
 }
 
+// The determinant is only used by Randomize, to check a random matrix is invertible (determinant not 0).
+// Method: row reduce to a triangle, multiply the diagonal, and flip the sign once for every row swap.
 function determinant(M) {
   const n = M.length, t = M.map((r) => r.map(toFr));
   let d = fr(1n);
@@ -434,198 +528,171 @@ function determinant(M) {
   return d;
 }
 
-// ---------- How the determinant is found ----------
-const sub = (n) => String(n).split("").map((d) => "₀₁₂₃₄₅₆₇₈₉"[d]).join("");
-const br = (x) => `(${show(x)})`;                          // always bracketed: (2), (−3), (1/2)
-const bn = (x) => (x.n < 0n ? `(${show(x)})` : show(x));   // bracketed only when negative
+const br = (x) => `(${show(x)})`;   // always bracketed: (2), (−3), (1/2)
 
-// 2×2: a·d − b·c      3×3: cofactor expansion along row 1      4×4 and 5×5: row reduction to upper triangular
-function determinantSteps(M) {
-  const n = M.length;
-  const a = M.map((row) => row.map(toFr));
-  const clone = (m) => m.map((r) => [...r]);
+// ---------- Solving with the inverse: x = A⁻¹b (left multiplication) ----------
+// whyHTML() prints the short proof: multiply both sides of Ax = b on the LEFT by A⁻¹.
+function whyHTML() {
+  return `<h2>Why x = A⁻¹b</h2>
+    <div class="derive">
+      <p class="muted">If A is invertible, Ax = b has a unique solution. Multiply both sides on the <b>left</b> by A⁻¹:</p>
+      <div class="expr">Ax = b</div>
+      <div class="expr">A⁻¹(Ax) = A⁻¹b</div>
+      <div class="expr">(A⁻¹A)x = A⁻¹b</div>
+      <div class="expr">Ix = A⁻¹b</div>
+      <div class="expr">x = A⁻¹b</div>
+    </div>`;
+}
+
+// leftMultiplyHTML() shows the multiplication A⁻¹ × b. Row i of A⁻¹ times the column b gives unknown i.
+function leftMultiplyHTML(inverse, bf, solution) {
+  const lines = inverse.map((row, i) =>
+    `${names[i]} = ${row.map((v, j) => `${br(v)}${br(bf[j])}`).join(" + ")} = ${show(solution[i])}`);
+  return `<h2>Multiply: x = A⁻¹b</h2>
+    <p class="muted">Left multiplication: A⁻¹ goes on the left of b (b·A⁻¹ isn't even defined, because b is a column). Each row of A⁻¹ times b gives one unknown.</p>
+    <div class="line">x = A⁻¹b = ${matrixHTML(inverse)} ${columnHTML(bf.map(showHTML))} = ${columnHTML(solution.map(showHTML))}</div>
+    ${lines.map((l) => `<div class="expr">${l}</div>`).join("")}`;
+}
+
+// ---------- When A has no inverse: still row-reduce, and show WHY there is no unique solution ----------
+// The idea: reduce as far as possible, then LOOK at the result.
+//   - a column with no pivot  = a free variable (it can be any number)
+//   - a row of zeros on the left with a non-zero number on the right (0 0 0 | 5) = impossible, so NO solution
+//   - a row of all zeros including the right side (0 0 0 | 0) = no information, so INFINITELY many solutions
+//   - no b at all = just report that A has no inverse
+// a coefficient list like (2, [−1, 0]) with parameter names ["t", "s"]  →  "2 − t"
+function linearExpr(constant, coefs, paramNames) {
+  let out = fZero(constant) ? "" : show(constant);
+  coefs.forEach((coef, k) => {
+    if (fZero(coef)) return;
+    const mag = fAbs(coef);
+    const body = (fOne(mag) ? "" : mag.d === 1n ? show(mag) : `(${show(mag)})`) + paramNames[k];
+    out = out === "" ? (coef.n < 0n ? "−" : "") + body : out + (coef.n < 0n ? " − " : " + ") + body;
+  });
+  return out === "" ? "0" : out;
+}
+
+// full Gauss-Jordan on [A | b] (or on A alone) that does not give up when a column has no pivot
+// (same as solveSystem, but a column without a pivot is skipped instead of stopping, and at the end
+// the result is classified using the rules above)
+function singularWork(Anum, bnum, { showI = false } = {}) {
+  const n = Anum.length;
+  const hasB = Array.isArray(bnum);
+  const bCol = showI ? 2 * n : n;   // where b sits: [A | b] or [A | I | b]
+  const t = Anum.map((row, i) => [
+    ...row.map(fFromNumber),
+    ...(showI ? Anum.map((_, j) => fr(i === j ? 1n : 0n)) : []),
+    ...(hasB ? [fFromNumber(bnum[i])] : []),
+  ]);
   const steps = [];
+  const save = (text, ops = [], changed = []) => steps.push({ text, ops, changed, rows: t.map((r) => [...r]) });
+  save(showI && hasB ? "Start with the augmented matrix [A | I | b]: A on the left, the identity matrix I in the middle, b on the right."
+    : showI ? "Start with the augmented matrix [A | I]: A on the left, the identity matrix I on the right."
+    : hasB ? "Start with the augmented matrix [A | b]: A on the left, b on the right."
+    : "Start with the matrix A.");
 
-  if (n === 2) {
-    const [[p, q], [r, s]] = a;
-    const ps = fMul(p, s), qr = fMul(q, r), value = fSub(ps, qr);
-    steps.push({ text: "For a 2×2 matrix, multiply the main diagonal (top-left × bottom-right), then subtract the product of the other diagonal (top-right × bottom-left).", rows: a });
-    steps.push({ text: "Put in the numbers:", lines: [
-      `det(A) = ${br(p)}${br(s)} − ${br(q)}${br(r)}`,
-      `= ${bn(ps)} − ${bn(qr)}`,
-      `= ${show(value)}`,
-    ] });
-    return { method: "2×2 formula", steps, value };
-  }
-
-  if (n === 3) {
-    steps.push({ text: "Expand along the first row (cofactor expansion): det(A) = a₁₁·M₁₁ − a₁₂·M₁₂ + a₁₃·M₁₃. Each M is the determinant of the 2×2 matrix left after crossing out that entry's row and column.", rows: a });
-    const terms = [];
-    for (let j = 0; j < 3; j++) {
-      const entry = a[0][j];
-      if (fZero(entry)) {
-        steps.push({ text: `a${sub(1)}${sub(j + 1)} = 0, so this term is 0 and M${sub(1)}${sub(j + 1)} isn't needed.` });
-        terms.push({ zero: true, prod: fr(0n) });
-        continue;
-      }
-      const minor = [1, 2].map((r) => a[r].filter((_, c) => c !== j));
-      const [[p, q], [r, s]] = minor;
-      const ps = fMul(p, s), qr = fMul(q, r), m = fSub(ps, qr);
-      steps.push({
-        text: `Cross out row 1 and column ${j + 1}. The 2×2 matrix left over gives M${sub(1)}${sub(j + 1)}:`,
-        rows: minor,
-        lines: [`M${sub(1)}${sub(j + 1)} = ${br(p)}${br(s)} − ${br(q)}${br(r)} = ${bn(ps)} − ${bn(qr)} = ${show(m)}`],
-      });
-      terms.push({ entry, m, prod: fMul(entry, m) });
-    }
-    const value = fAdd(fSub(terms[0].prod, terms[1].prod), terms[2].prod);
-    const sign = ["", " − ", " + "];
-    steps.push({ text: "Combine the three terms, using the signs + − + along the first row:", lines: [
-      "det(A) = " + terms.map((t, j) => sign[j] + (t.zero ? "0" : `${br(t.entry)}${br(t.m)}`)).join(""),
-      "= " + terms.map((t, j) => sign[j] + bn(t.prod)).join(""),
-      `= ${show(value)}`,
-    ] });
-    return { method: "cofactor expansion", steps, value };
-  }
-
-  // 4×4 and 5×5: make the matrix upper triangular, then multiply the diagonal
-  const t = clone(a);
-  let swaps = 0;
-  steps.push({ text: `For a ${n}×${n} matrix, use row operations to make A upper triangular (zeros below the diagonal). Swapping two rows flips the sign of det(A); subtracting a multiple of one row from another doesn't change it.`, rows: clone(t) });
-
-  for (let col = 0; col < n - 1; col++) {
-    let p = col;
+  const pivots = [];   // [row, column] of every pivot we manage to make
+  let row = 0;
+  for (let col = 0; col < n && row < n; col++) {
+    let p = row;
     while (p < n && fZero(t[p][col])) p++;
-    if (p === n) {
-      steps.push({ text: `Column ${col + 1} has only zeros from the diagonal down, so the determinant is 0.`, lines: ["det(A) = 0"] });
-      return { method: "row reduction", steps, value: fr(0n) };
+    if (p === n) continue;   // nothing left to use as a pivot in this column: it will be a free variable
+
+    if (p !== row) {
+      [t[p], t[row]] = [t[row], t[p]];
+      save(`Swap row ${row + 1} and row ${p + 1} so the pivot isn't zero.`, [`R${row + 1} ↔ R${p + 1}`], [row, p]);
     }
-    if (p !== col) {
-      [t[p], t[col]] = [t[col], t[p]];
-      swaps++;
-      steps.push({ text: `Swap row ${col + 1} and row ${p + 1} so the pivot isn't zero. This flips the sign of the determinant.`,
-        ops: [`R${col + 1} ↔ R${p + 1}`], rows: clone(t), changed: [col, p] });
+    const pivot = t[row][col];
+    if (!fOne(pivot)) {
+      t[row] = t[row].map((v) => fDiv(v, pivot));
+      save(`Divide row ${row + 1} by ${show(pivot)} to make the pivot 1.`, [`R${row + 1} ÷ ${paren(pivot)} → R${row + 1}`], [row]);
     }
     const ops = [], changed = [];
-    for (let r = col + 1; r < n; r++) {
-      if (fZero(t[r][col])) continue;
-      const f = fDiv(t[r][col], t[col][col]);
-      t[r] = t[r].map((v, k) => fSub(v, fMul(f, t[col][k])));
-      ops.push(`R${r + 1} ${f.n > 0n ? "−" : "+"} ${coef(f)}R${col + 1} → R${r + 1}`);
-      changed.push(r);
-    }
-    if (ops.length) steps.push({ text: `Clear column ${col + 1} below the pivot.`, ops, rows: clone(t), changed });
-  }
-
-  const diag = t.map((row, i) => row[i]);
-  const prod = diag.reduce(fMul, fr(1n));
-  const value = swaps % 2 ? fNeg(prod) : prod;
-  const swapWord = swaps === 1 ? "there was 1 row swap" : `there were ${swaps} row swaps`;
-  steps.push({
-    text: "The matrix is now upper triangular, so det(A) is the product of the diagonal entries" + (swaps ? `, with the sign flipped because ${swapWord}.` : "."),
-    rows: clone(t),
-    lines: swaps
-      ? [`det(A) = (−1)^${swaps} · ${diag.map(br).join(" · ")}`, `= (${swaps % 2 ? "−1" : "1"}) · ${bn(prod)}`, `= ${show(value)}`]
-      : [`det(A) = ${diag.map(br).join(" · ")}`, `= ${show(value)}`],
-  });
-  return { method: "row reduction", steps, value };
-}
-
-// shows any list of steps: row operations, a sentence, a matrix, extra blocks, and lines of working
-function stepsHTML(steps) {
-  return `<div class="steps">` + steps.map((st) => {
-    const ops = st.ops && st.ops.length ? `<p class="ops">${st.ops.join("  ;  ")}</p>` : "";
-    const mat = st.rows ? `<div class="line">${matrixHTML(st.rows, st.changed || [])}</div>` : "";
-    const blocks = (st.blocks || []).map((h) => `<div class="line">${h}</div>`).join("");
-    const lines = (st.lines || []).map((l) => `<div class="expr">${l}</div>`).join("");
-    return `<div class="step">${ops}<p class="muted">${st.text}</p>${mat}${blocks}${lines}</div>`;
-  }).join("") + `</div>`;
-}
-
-// ---------- Inverse (and solution) by the adjugate / cofactor method ----------
-// A⁻¹ = adj(A) ÷ det(A), where adj(A) is the transpose of the cofactor matrix
-function adjugateWork(Anum, bnum, includeX) {
-  const n = Anum.length;
-  const a = Anum.map((row) => row.map(fFromNumber));
-  const det = determinant(a);
-  if (fZero(det)) return { error: true };
-
-  const bf = Array.isArray(bnum) ? bnum.map(fFromNumber) : null;
-  const minorMatrix = (i, j) => a.filter((_, r) => r !== i).map((row) => row.filter((_, c) => c !== j));
-  const minors = a.map((row, i) => row.map((_, j) => determinant(minorMatrix(i, j))));
-  const cof = minors.map((row, i) => row.map((m, j) => ((i + j) % 2 ? fNeg(m) : m)));
-  const adj = a.map((_, i) => a.map((_, j) => cof[j][i]));      // transpose of the cofactor matrix
-  const inverse = adj.map((row) => row.map((v) => fDiv(v, det)));
-  const solution = bf ? inverse.map((row) => row.reduce((acc, v, j) => fAdd(acc, fMul(v, bf[j])), fr(0n))) : undefined;
-  const idx = (i, j) => `${sub(i + 1)}${sub(j + 1)}`;
-  const matrixOnly = (rows) => `<div class="matrix" style="grid-template-columns: repeat(${n}, auto)">${rows.flat().map((t) => `<span>${t}</span>`).join("")}</div>`;
-  const steps = [];
-
-  // 1. minors
-  const minorLines = [];
-  if (n <= 3) {
-    a.forEach((row, i) => row.forEach((_, j) => {
-      const m = minorMatrix(i, j);
-      if (n === 2) minorLines.push(`M${idx(i, j)} = ${show(minors[i][j])}`);
-      else {
-        const [[p, q], [r, s]] = m;
-        minorLines.push(`M${idx(i, j)} = ${br(p)}${br(s)} − ${br(q)}${br(r)} = ${bn(fMul(p, s))} − ${bn(fMul(q, r))} = ${show(minors[i][j])}`);
+    for (let r = 0; r < n; r++) {
+      const f = t[r][col];
+      if (r !== row && !fZero(f)) {
+        t[r] = t[r].map((v, k) => fSub(v, fMul(f, t[row][k])));
+        ops.push(`R${r + 1} ${f.n > 0n ? "−" : "+"} ${coef(f)}R${row + 1} → R${r + 1}`);
+        changed.push(r);
       }
-    }));
+    }
+    if (ops.length) save(`Clear column ${col + 1} above and below the pivot.`, ops, changed);
+    pivots.push([row, col]);
+    row++;
   }
-  steps.push({
-    text: n === 2
-      ? "Find the minor M of every entry: cross out its row and column. The one number left is the minor."
-      : n === 3
-        ? "Find the minor M of every entry: cross out its row and column, then take the determinant of the 2×2 matrix left (ad − bc)."
-        : `Find the minor M of every entry: cross out its row and column, then take the determinant of the ${n - 1}×${n - 1} matrix left.`,
-    rows: a,
-    blocks: [`M = ${matrixHTML(minors)}`],
-    lines: minorLines,
-  });
 
-  // 2. cofactors
-  const signs = a.map((row, i) => row.map((_, j) => ((i + j) % 2 ? "−" : "+")));
-  steps.push({
-    text: "Give each minor its checkerboard sign (+ − + − …) to get the cofactor: C = (−1)^(i+j) · M.",
-    blocks: [`signs = ${matrixOnly(signs)}`, `C = ${matrixHTML(cof)}`],
-  });
+  // rank = number of pivots found. Fewer pivots than unknowns means some unknowns are free.
+  const rank = pivots.length;
+  const pivotCols = pivots.map(([, c]) => c);
+  const freeCols = [...Array(n).keys()].filter((c) => !pivotCols.includes(c));
+  const zeroRows = [...Array(n).keys()].filter((r) => t[r].slice(0, n).every(fZero));
+  const badRow = hasB ? zeroRows.find((r) => !fZero(t[r][bCol])) : undefined;
+  const zeroList = zeroRows.map((r) => r + 1).join(zeroRows.length > 2 ? ", " : " and ");
+  const rowWord = zeroRows.length === 1 ? `Row ${zeroList} has` : `Rows ${zeroList} have`;
+  const zerosText = (r) => `${[...Array(n)].map(() => "0").join(" ")} | ${show(t[r][bCol])}`;
 
-  // 3. determinant from the first row
-  const row1 = a[0].map((v, j) => ({ v, c: cof[0][j] }));
-  steps.push({
-    text: `Expand along the first row to get det(A) = a${idx(0, 0)}C${idx(0, 0)} + a${idx(0, 1)}C${idx(0, 1)} + …. It is not 0, so A has an inverse.`,
-    lines: [
-      `det(A) = ${row1.map(({ v, c }) => `${br(v)}${br(c)}`).join(" + ")}`,
-      `= ${row1.map(({ v, c }) => bn(fMul(v, c))).join(" + ")}`,
-      `= ${show(det)}`,
-    ],
-  });
+  let kind, title, summary, form = null, lines = [];
+  const paramNames = freeCols.length <= 3 ? ["t", "s", "r"].slice(0, freeCols.length) : freeCols.map((_, k) => "t" + subscript(k + 1));
 
-  // 4. adjugate
-  steps.push({
-    text: "Transpose the cofactor matrix (rows become columns) to get the adjugate: adj(A) = Cᵀ.",
-    blocks: [`adj(A) = ${matrixHTML(adj)}`],
-  });
-
-  // 5. inverse
-  steps.push({
-    text: `Divide every entry of adj(A) by det(A) = ${show(det)}, that is A⁻¹ = (1 ÷ det(A)) · adj(A):`,
-    blocks: [`A⁻¹ = ${showHTML(fDiv(fr(1n), det))} ${matrixHTML(adj)} = ${matrixHTML(inverse)}`],
-  });
-
-  // 6. x = A⁻¹ b
-  if (includeX && bf) {
-    steps.push({
-      text: "Multiply A⁻¹ by b to get the solution x = A⁻¹b:",
-      lines: inverse.map((row, i) => `${names[i]} = ${row.map((v, j) => `${br(v)}${br(bf[j])}`).join(" + ")} = ${show(solution[i])}`),
+  if (!hasB) {
+    kind = "noinverse"; title = "No inverse";
+    summary = `${rowWord} turned into all zeros, so A can't be reduced to the identity matrix. The rank of A is ${rank}, which is less than ${n}, so A has no inverse.`;
+  } else if (badRow !== undefined) {
+    kind = "none"; title = "No solution";
+    summary = `Row ${badRow + 1} became ${zerosText(badRow)}. It says 0 = ${show(t[badRow][bCol])}, which is impossible, so the system has no solution. (The rank of A is ${rank} but the rank of [A | b] is ${rank + 1}.)`;
+  } else {
+    kind = "infinite"; title = "Infinitely many solutions";
+    const free = freeCols.map((c) => names[c]).join(", ");
+    summary = `${rowWord} turned into all zeros (0 = 0), which gives no information, so there are fewer independent equations (${rank}) than unknowns (${n}). ${freeCols.length === 1 ? `The variable ${free} is` : `The variables ${free} are`} free: let ${freeCols.map((c, k) => `${names[c]} = ${paramNames[k]}`).join(", ")} (any number), and the others follow:`;
+    // write every unknown in terms of the free ones: a pivot unknown = (right-hand number) − (coefficients × free unknowns)
+    form = names.slice(0, n).map((_, c) => {
+      const k = freeCols.indexOf(c);
+      if (k >= 0) return { constant: fr(0n), coefs: freeCols.map((_, j) => fr(j === k ? 1n : 0n)) };
+      const [r] = pivots.find(([, pc]) => pc === c);
+      return { constant: t[r][bCol], coefs: freeCols.map((j) => fNeg(t[r][j])) };
     });
+    lines = form.map((f, c) => `${names[c]} = ${linearExpr(f.constant, f.coefs, paramNames)}`);
   }
 
-  return { steps, inverse, solution };
+  // with I on show: row r of the I block tells which mix of the ORIGINAL rows gave the zero row
+  const dependencies = showI ? zeroRows.map((r) => ({ row: r, coefs: t[r].slice(n, 2 * n) })) : [];
+  const dependencyLines = dependencies.map(({ coefs }) => {
+    const pieces = coefs.map((c, j) => (fZero(c) ? null : `${br(c)}·(row ${j + 1})`)).filter(Boolean);
+    return `${pieces.join(" + ")} = ${[...Array(n)].map(() => "0").join(" ")}`;
+  });
+
+  return { steps, kind, title, summary, lines, form, rank, freeCols, hasB, dependencies, dependencyLines, layout: { withI: showI, hasB } };
+}
+
+// builds the page for the no-inverse case: the banner, the steps, and the final verdict box
+function singularHTML(w, n) {
+  const banner = w.hasB
+    ? "A has no inverse, so Ax = b has no unique solution."
+    : "A has no inverse.";
+  const parts = ["A", ...(w.layout.withI ? ["I"] : []), ...(w.hasB ? ["b"] : [])];
+  const legend = `Every matrix is ${parts.length > 1 ? `[${parts.join(" | ")}]` : "A"}. The row operations try to turn A into the identity matrix I. Shaded rows are the ones changed by that step.`
+    + (w.layout.withI ? " Because A can't become I, the I block never turns into an inverse." : "");
+  let html = `<div class="error">${banner} Row reduction shows why:</div>
+    <h2>Steps (row reduction)</h2>
+    <p class="muted legend">${legend}</p>
+    <div class="steps">`;
+  for (const step of w.steps) {
+    const ops = step.ops.length ? `<p class="ops">${step.ops.join("  ;  ")}</p>` : "";
+    html += `<div class="step">${ops}<p class="muted">${step.text}</p><div class="line">${augmentedHTML(step.rows, n, step.changed, w.layout)}</div></div>`;
+  }
+  html += `</div>
+    <div class="solution"><b>${w.title}</b><p class="muted">${w.summary}</p>${w.lines.map((l) => `<div class="expr">${l}</div>`).join("")}`;
+  if (w.dependencyLines.length) {
+    html += `<p class="muted">The I block shows why the rows depend on each other. Row${w.dependencyLines.length > 1 ? "s" : ""} of the I block say that, in the original A:</p>`
+      + w.dependencyLines.map((l) => `<div class="expr">${l}</div>`).join("");
+  }
+  html += `</div>`;
+  return html;
 }
 
 // ---------- Input area ----------
+// readInputs: copy what is in the boxes into A and b (each box remembers its row and column in data-row / data-col;
+// the last column, number "size", is the b column)
 function readInputs() {
   document.querySelectorAll("input.cell").forEach((box) => {
     const r = Number(box.dataset.row);
@@ -635,6 +702,7 @@ function readInputs() {
   });
 }
 
+// resize: make A, b and ops match the current size. New cells get 1 on the diagonal and 0 elsewhere.
 function resize() {
   A = Array.from({ length: size }, (_, r) =>
     Array.from({ length: size }, (_, c) => (A[r] && A[r][c] !== undefined ? A[r][c] : r === c ? 1 : 0)));
@@ -646,12 +714,14 @@ function resize() {
 // is the "= b" part switched on? (off = a bare matrix: no b, no solution)
 const hasEquals = () => $("hasB").checked;
 
+// one number box. data-last remembers the last valid text, so a bad key press can be undone.
 function box(row, col) {
   const value = col === size ? b[row] : A[row][col];
   return `<input class="cell ${col === size ? "rhs" : labels && !(chosen("mode") === "matrix" && !hasEquals()) ? "c" + col : ""}" inputmode="decimal" maxlength="8" aria-label="Row ${row + 1}, column ${col + 1}"
             data-row="${row}" data-col="${col}" data-last="${value}" value="${value}">`;
 }
 
+// the + / − drop-down in front of a term (Linear System mode only)
 function opSelect(row, col) {
   const cur = ops[row][col];
   return `<select class="op" data-row="${row}" data-col="${col}" aria-label="Operation before ${names[col]}">
@@ -659,6 +729,10 @@ function opSelect(row, col) {
     <option value="−"${cur === "−" ? " selected" : ""}>−</option></select>`;
 }
 
+// drawInputs builds the input boxes as an HTML string. There are three layouts:
+//   Linear System   -> one line per equation:  [2] x + [3] y = [5]
+//   Matrix Equation -> [A] [x] = [b] as grids
+//   no "= b"        -> just the matrix
 function drawInputs() {
   resize();
   $("count").textContent = size;
@@ -689,11 +763,13 @@ function drawInputs() {
   $("inputs").innerHTML = html;
 }
 
+// remember which sign a + / − drop-down was set to
 $("inputs").addEventListener("change", (event) => {
   const sel = event.target;
   if (sel.classList.contains("op")) ops[Number(sel.dataset.row)][Number(sel.dataset.col)] = sel.value;
 });
 
+// live typing check: if the new text breaks the rules, put the old text back and show a short warning
 let warningTimer;
 $("inputs").addEventListener("input", (event) => {
   const box = event.target;
@@ -717,6 +793,8 @@ $("inputs").addEventListener("input", (event) => {
 });
 
 // ---------- Randomize ----------
+// Reads the range (min to max), picks random numbers, and, if "Always solvable" is on, keeps trying new
+// matrices until the determinant is not 0 (so an inverse exists). Gives up after 500 tries.
 function randomize() {
   const minBox = $("rmin"), maxBox = $("rmax");
   const decimals = $("decimals").checked;
@@ -750,6 +828,7 @@ function randomize() {
     return v + 0;   // turns -0 into 0
   };
 
+  // build a random matrix M; repeat while it is (almost) singular
   let M, tries = 0;
   do {
     M = Array.from({ length: size }, () => Array.from({ length: size }, pick));
@@ -776,6 +855,12 @@ function randomize() {
 }
 
 // ---------- Output area ----------
+// showResult is what runs when you press Solve. In order:
+//   1. read the boxes and refuse if any box is not a complete number
+//   2. turn the typed text into real numbers (applying the + / − boxes in Linear System mode)
+//   3. Transpose? just swap rows and columns and stop
+//   4. otherwise call solveSystem(); if there is no inverse, show singularWork()'s explanation instead
+//   5. otherwise write out: the inverse (if asked), the steps, the x = A⁻¹b multiplication and the solution
 function showResult() {
   readInputs();
   const out = $("result");
@@ -791,21 +876,14 @@ function showResult() {
     return;
   }
 
-  // in system mode, a "−" in front of a term flips the sign of its number
+  // in Linear System mode, a "−" in front of a term flips the sign of its number (see "ops" at the top)
   const mode = chosen("mode");
   const plain = !hasEquals();   // no "= b": there is no b, so no solution
   const flip = mode === "system";
   const numbersA = A.map((row, r) => row.map((v, c) => Number(v) * (flip && c > 0 && ops[r][c] === "−" ? -1 : 1)));
   const numbersB = plain ? null : b.map(Number);
 
-  if (chosen("output") === "det") {
-    const d = determinant(numbersA);
-    const how = determinantSteps(numbersA);
-    out.innerHTML = `<h2>Steps (${how.method})</h2>${stepsHTML(how.steps)}` +
-      `<h2>Determinant</h2><div class="solution"><div class="line answer">det(A) = ${showHTML(d)}</div></div>` +
-      (fZero(d) ? `<p class="muted">The determinant is 0, so A has no inverse.</p>` : `<p class="muted">The determinant is not 0, so A has an inverse.</p>`);
-    return;
-  }
+  // Transpose: entry (row r, column c) of A becomes entry (row c, column r)
   if (chosen("output") === "transpose") {
     const T = numbersA[0].map((_, c) => numbersA.map((row) => row[c]));
     out.innerHTML = `<h2>Transpose</h2><div class="solution"><div class="line answer">Aᵀ = ${matrixHTML(T)}</div></div>` +
@@ -813,13 +891,16 @@ function showResult() {
     return;
   }
 
+  // From here on it is the row-reduction output. The inverse always needs the I block in the maths;
+  // the "Show identity matrix I" tick box only decides whether the steps DISPLAY it.
   const wantInverse = chosen("output") === "inverse";
-  const adjugate = chosen("method") === "adjugate";
-  const withI = wantInverse || plain || $("withI").checked;   // finding A⁻¹ by row reduction needs I
-  const result = adjugate ? adjugateWork(numbersA, numbersB, !wantInverse) : solveSystem(numbersA, numbersB, { withI });
+  const showI = $("withI").checked;       // "Show identity matrix I": only changes what the steps display
+  const withI = wantInverse || showI;     // but A⁻¹ itself always needs I behind the scenes
+  const result = solveSystem(numbersA, numbersB, { withI, showI });
 
   if (result.error) {
-    out.innerHTML = `<div class="error">${plain ? "This matrix has no inverse (det = 0)." : "No unique solution: this system has no inverse (det = 0)."}</div>`;
+    // no inverse: don't just stop, row-reduce anyway and show why there is no unique solution
+    out.innerHTML = singularHTML(singularWork(numbersA, numbersB, { showI: $("withI").checked }), size);
     return;
   }
 
@@ -829,23 +910,22 @@ function showResult() {
     html += `<h2>Inverse</h2><div class="line answer">A⁻¹ = ${matrixHTML(result.inverse)}</div>`;
   }
 
-  if (adjugate) {
-    html += `<h2>Steps (adjugate method)</h2>
-      <p class="muted legend">A⁻¹ = adj(A) ÷ det(A). The adjugate adj(A) is the transpose of the cofactor matrix, and each cofactor is a minor with a + or − sign.</p>
-      ${stepsHTML(result.steps)}`;
-  } else {
-    html += `<h2>Steps (Gauss-Jordan)</h2>
-      <p class="muted legend">${rrefLegend(result.layout)}</p>
-      <div class="steps">`;
-    for (const step of result.steps) {
-      const ops = step.ops.length ? `<p class="ops">${step.ops.join("  ;  ")}</p>` : "";
-      html += `<div class="step">${ops}<p class="muted">${step.text}</p><div class="line">${augmentedHTML(step.rows, size, step.changed, result.layout)}</div></div>`;
-    }
-    html += `</div>`;
+  // solving Ax = b "using the inverse": show why x = A⁻¹b before finding A⁻¹
+  if (!plain && !wantInverse && result.inverse) html += whyHTML();
+
+  html += `<h2>Steps (Gauss-Jordan)</h2>
+    <p class="muted legend">${rrefLegend(result.layout)}</p>
+    <div class="steps">`;
+  for (const step of result.steps) {
+    const ops = step.ops.length ? `<p class="ops">${step.ops.join("  ;  ")}</p>` : "";
+    html += `<div class="step">${ops}<p class="muted">${step.text}</p><div class="line">${augmentedHTML(step.rows, size, step.changed, result.layout)}</div></div>`;
   }
+  html += `</div>`;
 
   if (!plain) {
-    if (wantInverse) html += `<p class="muted">Then x = A⁻¹b:</p>`;
+    const bFr = numbersB.map(fFromNumber);
+    if (result.inverse) html += leftMultiplyHTML(result.inverse, bFr, result.solution);
+    else html += `<p class="muted note">Row reduction on [A | b] solves for x directly, without finding A⁻¹. Tick "Show identity matrix I" to see x = A⁻¹b.</p>`;
     html += `<div class="solution"><b>Solution</b>
       <div class="line answer">${labels ? namesHTML(size) + " =" : ""} ${columnHTML(result.solution.map(showHTML))}</div></div>`;
   }
@@ -854,9 +934,9 @@ function showResult() {
 }
 
 // ---------- Wire up the page ----------
-let userWithI = true;   // remembers the "Show identity matrix I" choice while the box is locked on
-
-// show only the controls that make sense for the current input mode, output and method
+// This part connects the buttons, tick boxes and radio buttons to the functions above.
+// show only the controls that make sense for the current input mode and output
+// syncControls: grey out "Solve Ax = b" when there is no "= b", and hide the identity tick box for Transpose
 function syncControls() {
   const plain = !hasEquals();
   const solutionRadio = document.querySelector("input[name=output][value=solution]");
@@ -865,19 +945,60 @@ function syncControls() {
   if (plain && solutionRadio.checked) document.querySelector("input[name=output][value=inverse]").checked = true;
 
   const kind = chosen("output");
-  $("methodRow").hidden = !(kind === "solution" || kind === "inverse");
-  $("identityOpt").hidden = chosen("method") !== "rref";
-  const needI = kind === "inverse" || plain;
-  $("withI").disabled = needI;
-  $("withI").checked = needI ? true : userWithI;
+  $("optionsRow").hidden = !(kind === "solution" || kind === "inverse");
+}
+
+// ---------- Keeping Linear System and Matrix Equation in step ----------
+// (so both modes always describe the same equations)
+// In Linear System mode the sign of a term lives in its + / − box; Matrix Equation has no such boxes, so the sign
+// has to live in the number itself. Switching modes converts between the two so both show the same equations.
+let currentMode = "system";
+// flips the sign of a typed number as text ("3" <-> "-3"), leaving half-typed boxes and 0 alone
+const negateText = (v) => (!COMPLETE_NUMBER.test(v) || Number(v) === 0 ? v : v.startsWith("-") ? v.slice(1) : "-" + v);
+
+// Linear System style: every number after the first in a row is shown without its sign, the sign goes in the box
+function normalizeSystemSigns() {
+  for (let r = 0; r < size; r++) for (let c = 1; c < size; c++) {
+    const v = String(A[r][c]);
+    if (!COMPLETE_NUMBER.test(v)) continue;   // half-typed boxes are left alone
+    const negative = v.startsWith("-") !== (ops[r][c] === "−");   // the sign the term really has
+    const magnitude = v.startsWith("-") ? v.slice(1) : v;
+    A[r][c] = magnitude;
+    ops[r][c] = negative && Number(magnitude) !== 0 ? "−" : "+";
+  }
+}
+
+// called when you switch modes: moves the signs between the + / − boxes (system) and the numbers themselves (matrix)
+function convertSigns(from, to) {
+  if (from === to) return;
+  if (from === "system") {
+    // Linear System → Matrix Equation: move each − into its number
+    for (let r = 0; r < size; r++) for (let c = 1; c < size; c++) {
+      const v = String(A[r][c]);
+      if (!COMPLETE_NUMBER.test(v)) continue;
+      if (ops[r][c] === "−") A[r][c] = negateText(v);
+      ops[r][c] = "+";
+    }
+  } else {
+    // Matrix Equation → Linear System: move each minus sign out of its number into the box
+    ops = Array.from({ length: size }, () => Array(size).fill("+"));
+    normalizeSystemSigns();
+  }
 }
 
 document.querySelectorAll("input[name=mode]").forEach((r) =>
-  r.addEventListener("change", () => { readInputs(); syncControls(); drawInputs(); }));
+  r.addEventListener("change", () => {
+    readInputs();
+    const next = chosen("mode");
+    convertSigns(currentMode, next);
+    currentMode = next;
+    syncControls();
+    drawInputs();
+  }));
+// the buttons and tick boxes
 $("hasB").onchange = () => { readInputs(); syncControls(); drawInputs(); };
-document.querySelectorAll("input[name=output], input[name=method]").forEach((r) =>
+document.querySelectorAll("input[name=output]").forEach((r) =>
   r.addEventListener("change", syncControls));
-$("withI").onchange = (e) => { userWithI = e.target.checked; };
 $("more").onclick = () => { readInputs(); if (size < MAX_UNKNOWNS) size++; drawInputs(); };
 $("less").onclick = () => { readInputs(); if (size > 2) size--; drawInputs(); };
 $("solve").onclick = showResult;
@@ -885,7 +1006,59 @@ $("randomize").onclick = randomize;
 $("fractions").onchange = (e) => { asFractions = e.target.checked; showResult(); };
 $("labels").onchange = (e) => { readInputs(); labels = e.target.checked; drawInputs(); showResult(); };
 
-// ---------- Light / dark mode ----------
+// ---------- Remember your numbers and choices (so a new version of this file doesn't make you retype them) ----------
+// The browser's localStorage keeps small pieces of text for this page even after you close it.
+// saveState() stores your numbers and choices as one piece of JSON text; loadState() reads them back
+// when the page opens. Both are wrapped in try/catch because some browsers block storage for local files.
+const STORE_KEY = "matrix-solver-state-v1";
+
+function saveState() {
+  try {
+    readInputs();
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      v: 1, size, A, b, ops, labels, asFractions,
+      mode: chosen("mode"), output: chosen("output"),
+      hasB: $("hasB").checked, withI: $("withI").checked,
+      rmin: $("rmin").value, rmax: $("rmax").value, decimals: $("decimals").checked, solvable: $("solvable").checked,
+    }));
+  } catch (e) { /* storage blocked (e.g. in a preview): just don't remember */ }
+}
+
+// loadState checks the saved data is sensible (right size, square matrices) before using it
+function loadState() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (!d || d.v !== 1) return;
+    const n = d.size;
+    const square = (m) => Array.isArray(m) && m.length === n && m.every((r) => Array.isArray(r) && r.length === n);
+    if (!(Number.isInteger(n) && n >= 2 && n <= MAX_UNKNOWNS && square(d.A) && square(d.ops) && Array.isArray(d.b) && d.b.length === n)) return;
+
+    size = n;
+    A = d.A.map((r) => r.map(String));
+    b = d.b.map(String);
+    ops = d.ops.map((r) => r.map((o) => (o === "−" ? "−" : "+")));
+    labels = !!d.labels;      $("labels").checked = labels;
+    asFractions = !!d.asFractions;   $("fractions").checked = asFractions;
+    $("hasB").checked = !!d.hasB;
+    $("withI").checked = !!d.withI;
+    $("decimals").checked = !!d.decimals;
+    $("solvable").checked = !!d.solvable;
+    if (d.rmin !== undefined) $("rmin").value = String(d.rmin);
+    if (d.rmax !== undefined) $("rmax").value = String(d.rmax);
+    for (const name of ["mode", "output"]) {   // (an old saved choice that no longer exists is simply skipped)
+      const radio = document.querySelector(`input[name=${name}][value=${d[name]}]`);
+      if (radio) radio.checked = true;
+    }
+  } catch (e) { /* nothing saved yet, or storage blocked */ }
+}
+
+// save shortly after anything changes (the small delay avoids saving on every single key press)
+let saveTimer;
+const saveSoon = () => { clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 200); };
+["input", "change", "click"].forEach((type) => document.addEventListener(type, saveSoon));
+
+// light / dark mode para maangas
+// The colours are CSS variables (see the top of the file). Setting data-theme on the page switches which set is used.
 const root = document.documentElement;
 function setTheme(mode) {
   root.dataset.theme = mode;
@@ -894,9 +1067,17 @@ function setTheme(mode) {
 setTheme(matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 $("theme").onclick = () => setTheme(root.dataset.theme === "dark" ? "light" : "dark");
 
-syncControls();
-drawInputs();
-showResult();
+// startUp runs once when the page opens: load saved numbers, tidy the signs, draw the boxes, show a first result
+function startUp() {
+  loadState();
+  currentMode = chosen("mode");
+  resize();
+  if (currentMode === "system") normalizeSystemSigns();   // e.g. "+ −1z" is shown as "− 1z"
+  syncControls();
+  drawInputs();
+  showResult();
+}
+startUp();
 </script>
 </body>
 </html>
